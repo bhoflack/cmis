@@ -1,6 +1,5 @@
-(ns cmis.core)
+(ns cmis.core
+  (:use cascalog.api)
+  (:gen-class))
 
-(defn foo
-  "I don't do a whole lot."
-  [x]
-  (println x "Hello, World!"))
+(

@@ -15,9 +15,10 @@
   (sensei-or      [this exprs])
   (sensei-and     [this exprs])
   (sensei-not     [this exprs])
-  (sensei-between [this exprs]
-
-    ))
+  (sensei-between [this exprs])
+  (sensei-=       [this exprs]
+    
+  )
     
 (defprotocol Query
   (select* [this clause]))
