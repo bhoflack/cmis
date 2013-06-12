@@ -106,6 +106,7 @@
 (def nagios-service-pattern #"\[(\d+)\] CURRENT SERVICE STATE: (.+);(.+);(\w+);(\w+);(\d*);(.*)")
 (def nagios-service-alert-pattern #"\[(\d+)\] SERVICE ALERT: (.+);(.+);(\w+);(\w+);(\d*);(.*)")
 
+
 (defn- format-nagios-log [line pattern]
   (let [fields (rest (first (re-seq pattern line)))]    
     (vec
@@ -123,10 +124,19 @@
   (format-nagios-log line nagios-service-alert-pattern))  
 
 (deffilterop is-nagios-host-line? [l]
-  (re-matches nagios-host-pattern l))
+  (re-matches nagios-*host-pattern l))
   
 (deffilterop is-nagios-service-line? [l]
   (re-matches nagios-service-pattern l))
 
 (deffilterop is-nagios-service-alert? [l]
   (re-matches nagios-service-alert-pattern l))
+
+
+(def nagios-cpu-pattern #"CPU STATISTICS OK : user=([\d.]+)% system=([\d.]+)% iowait=([\d.]+)% idle=([\d.]+)%")
+
+(deffilterop is-cpu-service-pattern? [msg]
+  (re-matches nagios-cpu-pattern msg))
+
+(defmapop cpu-service-pattern [msg]
+  (map #(Double/parseDouble %) (rest (re-matches nagios-cpu-pattern msg))))
