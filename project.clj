@@ -15,10 +15,16 @@
                  [org.slf4j/slf4j-simple "1.6.5"]
                  [org.clojure/data.json "0.2.2"]
                  [enlive "1.1.1"]
+                 [org.clojars.lstoll/libvirt "0.4.9.1"]
+                 [net.java.dev.jna/jna "3.3.0"]
+                 [the/parsatron "0.0.4"]
                  ]
   :exclusions [org.slf4j/slf4j-log4j12]
   :plugins [[lein-ring "0.8.5"]]
   :ring {:handler cmis.web/handler}
   :repositories {"conjars" "http://conjars.org/repo/"}
   :profiles {:dev {:dependencies [[org.apache.hadoop/hadoop-core "0.20.2-dev"]]}}
-  :main cmis.parse)
+  :source-paths ["src/main/clj"]
+  :java-source-paths ["src/main/java"]
+                                        ;  :main cmis.parse
+  )
