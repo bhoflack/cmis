@@ -3,7 +3,8 @@
 
 (defprotocol ANagios
   (hosts [this] "List all host.cfg files in the nagios root")
-  (config [this] "List all nagios config from a nagios config")
+  (update [this] "Update the nagios config")
+  (config [this] "List all nagios config from a nagios config")  
   (withHostGroup [n group] "Find all hosts with the given hostgroup"))
 
 (defrecord Nagios [#^java.io.File root]
@@ -11,6 +12,8 @@
   (hosts [n] 
     (filter (fn [f] (= "host.cfg" (.getName f)))
             (file-seq root)))
+  (update [this]
+    (clojure.java.shell/sh "cvs" "update" :dir root))
   (config [this]
     (map (fn [f]
            (try
@@ -20,4 +23,10 @@
   (withHostGroup [this group]
     (let [hs (.config this)]
       (filter (fn [h] (some #{group} (:hostgroups h)))
-              hs))))              
+              hs))))
+
+(defn create-nagios
+  [root]
+  (Nagios. (if (instance? String root)
+             (java.io.File. root)
+             root)))

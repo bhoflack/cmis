@@ -16,21 +16,31 @@
           :or {:password ""}}]
   (Connect. uri (ConnectAuthPasswordProvided. password) 0))
 
+(defmacro with-connection
+  [uri password connection & body]
+  `(let [c# (connect ~uri :password ~password)
+         ~connection c#]
+     (try
+       ~@body
+       (finally (.close c#)))
+     ))
+
 (defn domain-to-clj
   [domain]
   {:name (.getName domain)
-   :os-type (.getOSType domain)
+   :os_type (.getOSType domain)
    :state (get domain-state (.state (.getInfo domain)))
    :memory (.memory (.getInfo domain))
-   :nr-cpus (.nrVirtCpu (.getInfo domain))
+   :nr_cpus (.nrVirtCpu (.getInfo domain))
    })
 
 (defn list-domains
   "List all domains on the server"
   [c]
-  (map (fn [dom]
+  (doall
+   (map (fn [dom]
          (domain-to-clj (.domainLookupByID c dom)))
-       (.listDomains c)))
+       (.listDomains c))))
   
 (defn node-info
   "Information about the host server"
@@ -41,16 +51,14 @@
      :model (.model ni)
      :cores (.cores ni)
      :cpus  (.cpus ni)
-     :cpu-freq (.mhz ni)
-     :numa-cells (.nodes ni)
+     :cpu_freq (.mhz ni)
+     :numa_cells (.nodes ni)
      :sockets (.sockets ni)
-     :threads-per-core (.threads ni)
+     :threads_per_core (.threads ni)
      :memory (.memory ni)
      :hypervisor (.getType c)
-     :hypervisor-version (.getVersion c)
-     :storage-pools (seq (.listStoragePools c))
+     :hypervisor_version (.getVersion c)
+     :storage_pools (seq (.listStoragePools c))
      :interfaces (seq (.listInterfaces c))
      :networks (seq (.listNetworks c))
      }))
-
-  

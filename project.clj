@@ -18,6 +18,11 @@
                  [org.clojars.lstoll/libvirt "0.4.9.1"]
                  [net.java.dev.jna/jna "3.3.0"]
                  [the/parsatron "0.0.4"]
+                 [clj-http "0.7.6"]
+                 [com.github.kyleburton/clj-xpath "1.4.1"]
+                 [org.clojure/data.xml "0.0.7"]
+                 [org.clojure/data.zip "0.1.1"]
+                 [de.ubercode.clostache/clostache "1.3.1"]
                  ]
   :exclusions [org.slf4j/slf4j-log4j12]
   :plugins [[lein-ring "0.8.5"]]
@@ -26,5 +31,4 @@
   :profiles {:dev {:dependencies [[org.apache.hadoop/hadoop-core "0.20.2-dev"]]}}
   :source-paths ["src/main/clj"]
   :java-source-paths ["src/main/java"]
-                                        ;  :main cmis.parse
   )

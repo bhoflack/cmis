@@ -1,4 +1,4 @@
-(ns cmis.nagios.parser
+(ns cmis.nagios-parser
   (:refer-clojure :exclude [char])
   (:use [the.parsatron]))
 
@@ -17,22 +17,28 @@
           (digit)
           (token #{\. \_ \- \,})))
 
+(def kv (>> (many1 key-value-contents)
+            optional-whitespace
+            (many1 key-value-contents)))
+
+(def key-values (many
+                 (>> optional-whitespace
+                     key-value
+                     optional-whitespace)))
+
 (defparser key-value-parser []
   (let->> [space-before (optional-whitespace)
            name (many1 (key-value-contents))
            space (optional-whitespace)
            value (many1 (key-value-contents))
            space-after (optional-whitespace)]
-          (let [n (keyword (apply str name))
-                v (apply str value)]
-            (if (= :hostgroups n)
-              (always [n (seq (.split v ","))])
-              (always [n v])))))
+          (always [(keyword (apply str name)) (apply str value)])))
 
 (defn to-hashmap
   [pl]
   (reduce (fn [hm [k v]] (assoc hm k v)) {} pl))
   
+
 (defparser host-config-parser []
   (let->> [type (define-host)
            space-before (optional-whitespace)
@@ -42,6 +48,8 @@
           (always (to-hashmap values))))
 
 (defn parse
-  "Parse a nagios config file to a clojure map"
   [hostdef]
-  (run (host-config-parser) hostdef))
+  (run (between (>> define-host optional-whitespace open-group optional-whitespace)
+                (>> optional-whitespace close-group optional-whitespace)
+                key-values)
+       hostdef))
