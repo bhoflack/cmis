@@ -4,8 +4,7 @@
         [clj-time.core :exclude (extend)])
   (:require [clojure.java.jdbc :as j]
             [clojure.java.jdbc.sql :as s]
-            [clojure.tools.logging :as log]
-            [cmis.cmdb :as cmdb])
+            [clojure.tools.logging :as log])
   (:gen-class))
 
 (def nagios-service-pattern #"\[(\d+)\] [\w ]*SERVICE [\w]*: (.+);(.+);(\w+);(\w+);(\d*);(.*)")
@@ -231,10 +230,12 @@
 
 (defmethod process true
   [dir]
+  (println "Processing directory " dir)
   (map process (.listFiles dir)))
 
 (defmethod process false
   [file]
+  (println "Processing file " file)
   (let [ds {:subprotocol "postgresql"
             :classname "org.postgresql.Driver"            
             :subname "//localhost/cmis"
