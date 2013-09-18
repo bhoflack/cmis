@@ -11,6 +11,7 @@
 (def nagios-cpu-pattern #"CPU STATISTICS OK : user=([\d.]+)% system=([\d.]+)% iowait=([\d.]+)% idle=([\d.]+)%")
 (def nagios-io-latency #".*- io .* latency=(\d+) ms")
 (def nagios-mem-free #"Memory .* - ([\d\.]*)% \(([\d]*)kB\) free")
+(def iostat-re #"rsec/s=(\d+),wsec/s=(\d+),%util=(\d+)")
 
 (defn list-files
   [dir]
@@ -69,6 +70,19 @@
                        :memory-relative (to-double memory-relative)
                        :memory-absolute (to-integer memory-absolute))))
                  memory-matches))))
+
+(defn parse-iostat-results
+  [service-lines]
+  (let [iostat-results (filter #(= (:check %) "IOSTAT") service-lines)]
+    (for [res iostat-results
+          [dev results] (partition 2 (clojure.string/split (:msg res) #":"))]
+      (let [[_ rsec wsec util] (re-matches iostat-re results)]
+        (assoc res
+          :device (cons {:device dev
+                         :rsec (to-integer rsec)
+                         :wsec (to-integer wsec)
+                         :util (to-integer util)}
+                        (:device res)))))))
                                     
 (defn parse-cpu-results
   [service-lines]
@@ -221,7 +235,18 @@
                       :val val
                       :unit unit})))
 
-
+(defmethod save "IOSTAT"
+  [ds rs]
+  (for [device (:device rs)
+        [check value unit] [[(str "rsec " (:device device))  (:rsec device) "reads/sec"]
+                            [(str "wsec " (:device device))  (:wsec device) "writes/sec"]
+                            [(str "util " (:device device))  (:util device) "%"]]]
+    (to-star-schema ds {:timestamp (:timestamp rs)
+                        :hostname (:hostname rs)
+                        :check check
+                        :val value
+                        :unit unit})))
+        
 (defmethod save :default
   [ds rs]
   (throw (Exception. (str "Check " (:check rs) " doesn't exist yet"))))
@@ -244,12 +269,12 @@
     (let [service-lines (parse-service-lines (.getPath file))
           cpu-results (parse-cpu-results service-lines)
           latency-results (parse-latency-results service-lines)
-          memory-results (parse-memory-results service-lines)]
-      (for [rs (concat latency-results cpu-results memory-results)]
+          memory-results (parse-memory-results service-lines)
+          iostat-results (parse-iostat-results service-lines)]
+      (for [rs (concat latency-results cpu-results memory-results iostat-results)]
         (do 
           (log/info "saving result " rs)
           (save ds rs))))))
   
-
 (defn -main [f] (process (java.io.File. f)))
 
