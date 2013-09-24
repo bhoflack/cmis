@@ -5,21 +5,23 @@
             [clojure.data.xml :as xml]
             [clojure.zip :as zip]))
 
-(def cookie-store
+(def default-cookie-store
   (atom (clj-http.cookies/cookie-store)))
 
 (defn logout!
   []
-  (reset! cookie-store (clj-http.cookies/cookie-store)))
+  (reset! default-cookie-store (clj-http.cookies/cookie-store)))
 
 (defn request
-  [hostname body]
+  [hostname body &{:keys [cookie-store]
+                   :or {cookie-store @default-cookie-store}}]
   (let [uri (format "https://%s/sdk" hostname)]
     (http/post uri
                {:insecure? true
                 :headers {"Accept" "*/*" "Content-Type" "text/xml"}
-                :cookie-store @cookie-store
-                :body body})))
+                :cookie-store cookie-store
+                :body body
+                :throw-entire-message? true})))
 
 (defn soap
   [body]
@@ -59,12 +61,16 @@
      }))     
     
 (defn login
-  [hostname username password session-manager]
+  [hostname username password session-manager &{:keys [cookie-store]
+                                                :or {cookie-store @default-cookie-store}}]
   (let [response (request hostname
-                          (soap (format "<Login xmlns=\"urn:vim25\">
-                                           <_this xmlns=\"urn:vim25\" xsi:type=\"ManagedObjectReference\" type=\"SessionManager\">%s</_this>
-                                           <userName xmlns=\"urn:vim25\" xsi:type=\"xsd:string\">%s</userName><password xmlns=\"urn:vim25\" xsi:type=\"xsd:string\">%s</password>
-                                         </Login>" session-manager username password)))
+                          (soap
+                           (format "<Login xmlns=\"urn:vim25\">
+                                      <_this xmlns=\"urn:vim25\" xsi:type=\"ManagedObjectReference\" type=\"SessionManager\">%s</_this>
+                                      <userName xmlns=\"urn:vim25\" xsi:type=\"xsd:string\">%s</userName><password xmlns=\"urn:vim25\" xsi:type=\"xsd:string\">%s</password>
+                                    </Login>"
+                                   session-manager username password))
+                          :cookie-store cookie-store)
         body (:body response)
         xml (xml/parse-str body)
         zipped (zip/xml-zip xml)]
@@ -77,7 +83,8 @@
      }))
 
 (defn retrieve-properties
-  [hostname property-collector spec-set]
+  [hostname property-collector spec-set &{:keys [cookie-store]
+                                          :or {cookie-store @default-cookie-store}}]
   (let [msg (render "<RetrieveProperties xmlns=\"urn:vim25\">
                                       <_this xmlns=\"urn:vim25\" xsi:type=\"ManagedObjectReference\" type=\"PropertyCollector\">{{propertyCollector}}</_this>
                                       <specSet xmlns=\"urn:vim25\" xsi:type=\"{{specSet.type}}\">
@@ -90,19 +97,21 @@
                                         <objectSet xmlns=\"urn:vim25\" xsi:type=\"ObjectSpec\">
                                           <obj xmlns=\"urn:vim25\" xsi:type=\"ManagedObjectReference\" type=\"{{specSet.objectSet.type}}\">{{specSet.objectSet.name}}</obj>
                                           <skip xmlns=\"urn:vim25\" xsi:type=\"xsd:boolean\">{{specSet.objectSet.skip}}</skip>
+                                          {{#specSet.objectSet.selectSet}}
                                           <selectSet xmlns=\"urn:vim25\" xsi:type=\"TraversalSpec\">
-                                            <name xmlns=\"urn:vim25\" xsi:type=\"xsd:string\">{{specSet.objectSet.selectSet.name}}</name>
-                                            <type xmlns=\"urn:vim25\" xsi:type=\"xsd:string\">{{specSet.objectSet.selectSet.type}}</type>
-                                            <path xmlns=\"urn:vim25\" xsi:type=\"xsd:string\">{{specSet.objectSet.selectSet.path}}</path>
-                                            <skip xmlns=\"urn:vim25\" xsi:type=\"xsd:boolean\">{{specSet.objectSet.selectSet.skip}}</skip>
+                                            <name xmlns=\"urn:vim25\" xsi:type=\"xsd:string\">{{name}}</name>
+                                            <type xmlns=\"urn:vim25\" xsi:type=\"xsd:string\">{{type}}</type>
+                                            <path xmlns=\"urn:vim25\" xsi:type=\"xsd:string\">{{path}}</path>
+                                            <skip xmlns=\"urn:vim25\" xsi:type=\"xsd:boolean\">{{skip}}</skip>
                                           </selectSet>
+                                          {{/specSet.objectSet.selectSet}}
                                         </objectSet>
                                       </specSet>
                                     </RetrieveProperties>"
                                    {:propertyCollector property-collector
                                     :specSet spec-set
                                     })
-        response (request hostname (soap msg))
+        response (request hostname (soap msg) :cookie-store cookie-store)
         body (:body response)
         xml (xml/parse-str body)
         zipped (zip/xml-zip xml)
@@ -110,7 +119,13 @@
         propsToMap (fn [prop] {(keyword (xml1-> prop :name text))
                                {:type (xml1-> prop :val (attr :type))
                                 :value (xml1-> prop :val text)}})
-        props1 (map propsToMap props)]    
+        props1 (map propsToMap props)]
     {:obj {:type  (xml1-> zipped :Body :RetrievePropertiesResponse :returnval :obj (attr :type))
            :value (xml1-> zipped :Body :RetrievePropertiesResponse :returnval :obj text)}
      :propSet props1}))
+
+(defmacro with-cookie-store
+  [cookie-store-ref & body]
+  `(let [cookie-store# (clj-http.cookies/cookie-store)
+        ~cookie-store-ref cookie-store#]
+    ~@body))
