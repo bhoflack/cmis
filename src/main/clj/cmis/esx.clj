@@ -1,16 +1,18 @@
 (ns cmis.esx
-  (:use [clj-xpath.core])
+  (:use [clj-xpath.core]
+        [clj-time.coerce :only [from-string]])
   (:require [clj-http.client :as http]
             [cmis.esx.core :as esx]))
 
-(declare listDomainsOnServer)
+(declare listDomainsOnServer
+         hostInfo)
 
 (defrecord Domain
     [name
      state
      memory
-     cpu-speed
-     number-of-cpus])
+     cpuSpeed
+     numberOfCpus])
 
 (defrecord ComputeResource
     [name
@@ -18,7 +20,7 @@
      memory
      cpuThreads
      cpus
-     cpu-speed])
+     cpuSpeed])
 
 (defprotocol AHypervisor
   (version [this] "Get the version of the hypervisor")
@@ -40,18 +42,19 @@
   [domain]
   (Domain. (:name domain)
            (get power-state-to-state (:runtime.powerState domain))
-           (Integer/parseInt (:runtime.maxMemoryUsage domain))
+           (Integer/parseInt (:summary.config.memorySizeMB domain))
            (Integer/parseInt (:runtime.maxCpuUsage domain))
            nil))
 
 (defn- esxcomputeResource-to-computeResource
   [cr]
   (ComputeResource. (:name cr)
-                    (clj-time.coerce/from-string (:runtime.bootTime cr))
-                    (Long/parseLong (:hardware.memorySize cr))
+                    (:runtime.bootTime cr)
+                    (int (/ (Long/parseLong (:hardware.memorySize cr)) (* 1024 1024)))
                     (Integer/parseInt (:hardware.cpuInfo.numCpuThreads cr))
                     (Integer/parseInt (:hardware.cpuInfo.numCpuPackages cr))
-                    (Long/parseLong (:hardware.cpuInfo.hz cr))))
+                    (int (/ (Long/parseLong (:hardware.cpuInfo.hz cr)) 1000000))
+                    ))
            
 (defrecord EsxHypervisor [hostname username password]
   AHypervisor
@@ -107,6 +110,7 @@
                     "config.cpuAllocation.reservation"
                     "summary.quickStats.guestMemoryUsage"
                     "summary.quickStats.overallCpuUsage"
+                    "summary.config.memorySizeMB"
                     "runtime.bootTime"
                     "runtime.maxCpuUsage"
                     "runtime.maxMemoryUsage"

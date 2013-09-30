@@ -4,8 +4,7 @@
              [esx :as esx]
              [nagios :as nagios]
              [star :as star]]
-            [clojure.tools.logging :as log]
-            ))
+            [clojure.tools.logging :as log]))
 
 (defn each-vmware-server
   [nagios f]
@@ -14,27 +13,33 @@
     (map f vmware-servers*)))
 
 (defn save-host-info-to-*-schema
-  [ds host-info]
-  (let [host-info* (dissoc host-info :domains :interfaces :networks :storage_pools)        
+  [ds hypervisor]    
+  (let [host-info (first (.computeResources hypervisor))
         parent-uuid (star/slowly-changing-dimension ds
                                                     :dim_ci
-                                                    host-info*
-                                                    [:hostname :model :cpus :cpu_freq :sockets
-                                                     :numa_cells :threads_per_core :memory
-                                                     :hypervisor :hypervisor_version]
-                                                    [:hostname])]
-    (doall (for [domain (:domains host-info)]
-      (let [domain-info {:hostname (:name domain)
-                         :parent_id parent-uuid
-                         :memory (:memory domain)
-                         :cpus (:nr_cpus domain)
-                         :state (name (:state domain))}]
-        (star/slowly-changing-dimension ds
-                                        :dim_ci
-                                        domain-info
-                                        [:hostname :parent_id :memory :cpus :state]
-                                        [:hostname]
-                                        ))))))
+                                                    host-info
+                                                    [:name
+                                                     :bootTime
+                                                     :memory
+                                                     :cpuThreads
+                                                     :cpus
+                                                     :cpuSpeed]
+                                                    [:name :memory :cpus :cpuSpeed :cpuThreads])]
+    (doall (for [domain (.listDomains hypervisor)]
+             (let [domain* (assoc domain
+                             :cpus (/ (:cpuSpeed domain) (:cpuSpeed host-info))
+                             :parent_id parent-uuid
+                             :state (.toString (:state domain)))]
+               (star/slowly-changing-dimension ds
+                                               :dim_ci
+                                               domain*
+                                               [:name
+                                                :state
+                                                :memory
+                                                :cpuSpeed
+                                                :numberOfCpus]
+                                               [:name :state :memory :cpuSpeed :numberOfCpus]
+                                               ))))))
 
 (defn extract-host-info
   [hostname]
@@ -50,10 +55,14 @@
   [ds nagios]
   (let [vmware-servers (.withHostGroup nagios "vmesx_hosts")
         vmware-servers* (map :host_name vmware-servers)
-        host-info (map (fn [hostname] (future (try
-                                                (.listDomains (EsxHypervisor. hostname "esxnagios" "123Qweasdzxc"))
-                                                (catch Exception e
-                                                  (log/warn "Exception while listing domains for " hostname ": " (.getMessage e)))))) vmware-servers*)]
+        host-info (map (fn [hostname]
+                         (future
+                           (try
+                             (save-host-info-to-*-schema ds (EsxHypervisor. hostname "esxnagios" "123Qweasdzxc"))
+                             (catch Exception e
+                               (log/warn "Exception while listing domains for "
+                                         hostname ": " (.getMessage e))))))
+                       vmware-servers*)]
     
     host-info))
 
