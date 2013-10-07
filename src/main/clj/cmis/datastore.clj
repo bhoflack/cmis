@@ -1,11 +1,14 @@
 (ns cmis.datastore
   (:require [cmis
              [star :as star]
-             [util :as util]]
-            ))
+             [util :as util]])
+  (:gen-class))
 
 (defprotocol ADataStore
-  (save [this result] "Save a result to the datastore"))
+  (save [this result]
+    "Save a result to the datastore")
+  (slowly-changing-dimension [_ table values keys identifiers]
+    "Add an entry to a slowly changing dimension"))
 
 (defn timedimension
   [ts]
@@ -29,13 +32,17 @@
    (.contains hostname "apps.elex.be") "diegem"
    (.contains hostname "kiev.elex.be") "kiev"
    (.contains hostname "tess.elex.be") "tessenderlo"
+   (partial re-matches #"[\w-]*.elex.be") "diegem"
    :else "unknown"))
 
 (defn find-ci-dimension
   [ds hostname]
   (first (star/find-dimension ds :dim_ci {:name hostname})))
-   
-(defn to-star-schema
+
+(defmulti to-star-schema
+  (fn [_ val] (set (keys val))))
+
+(defmethod to-star-schema #{:timestamp :hostname :check :unit :value}
   [ds {:keys [timestamp check unit hostname value]}]
   (let [time_id (star/slowly-changing-dimension ds :dim_time (timedimension timestamp) [:ts] [:ts])
         parameter_id (star/slowly-changing-dimension ds :dim_parameter {:name check :unit unit} [:name :unit] [:name :unit])
@@ -44,15 +51,29 @@
                  (:id ci_id)
                  (star/slowly-changing-dimension ds :dim_ci {:name hostname} [:name] [:name]))
         site_id (star/slowly-changing-dimension ds :dim_site {:site (site-for-hostname hostname)} [:site] [:site])]
-    (println value)
     (star/insert ds :fact_measurement {:id (util/random-uuid)
                                        :time_id time_id
                                        :parameter_id parameter_id
                                        :ci_id ci_id*
                                        :site_id site_id
-                                       ;:value value
+                                       :value value
+                                       })))
+
+(defmethod to-star-schema #{:timestamp :ci_id :check :hostname :unit :value}
+  [ds {:keys [timestamp check unit hostname value ci_id]}]
+  (let [time_id (star/slowly-changing-dimension ds :dim_time (timedimension timestamp) [:ts] [:ts])
+        parameter_id (star/slowly-changing-dimension ds :dim_parameter {:name check :unit unit} [:name :unit] [:name :unit])
+        site_id (star/slowly-changing-dimension ds :dim_site {:site (site-for-hostname hostname)} [:site] [:site])]
+    (star/insert ds :fact_measurement {:id (util/random-uuid)
+                                       :time_id time_id
+                                       :parameter_id parameter_id
+                                       :ci_id ci_id
+                                       :site_id site_id
+                                       :value value
                                        })))
 
 (defrecord StarDataStore [ds]
   ADataStore
-  (save [this result] (to-star-schema ds result)))
+  (save [this result] (to-star-schema ds result))
+  (slowly-changing-dimension [_ table values keys identifiers]
+    (star/slowly-changing-dimension ds table values keys identifiers)))

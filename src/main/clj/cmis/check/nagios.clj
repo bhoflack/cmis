@@ -1,12 +1,13 @@
 (ns cmis.check.nagios
-  (:import [cmis.datastore ADataStore]
-           [cmis.check ACheck])
-  (:require [clj-time.core :as time]
+  (:require [cmis.datastore :refer [ADataStore]]
+            [cmis.check :refer [ACheck]]
+            [clj-time.core :as time]
             [clj-time.coerce :as coerce]
             [cmis.util :as util]
             [cmis.check.nagios
              [iolatency :as iolatency]
-             [cpu :as cpu]]
+             [cpu :as cpu]
+             [iostat :as iostat]]
             ))
 
 (def nagios-service-pattern #"\[(\d+)\] [\w ]*SERVICE [\w]*: (.+);(.+);(\w+);(\w+);(\d*);(.*)")
@@ -29,19 +30,24 @@
 
 
 (defmulti perform-check
-  (fn [^ADataStore ds ^java.io.File root] (.isDirectory root)))
+  (fn [^cmis.datastore.ADataStore ds
+       ^java.io.File root] (.isDirectory root)))
 
 (defmethod perform-check true
-  [^ADataStore ds ^java.io.File directory]
+  [^cmis.datastore.ADataStore ds
+   ^java.io.File directory]
   (map (partial perform-check ds)
        (.listFiles directory)))
 
 (defmethod perform-check false
-  [^ADataStore ds #^java.io.File root]
+  [^cmis.datastore.ADataStore ds
+   ^java.io.File root]
   (each-service-line root
                      (partial iolatency/extract ds)
-                     (partial cpu/extract ds)))
+                     (partial cpu/extract ds)
+                     (partial iostat/extract ds)
+                     ))
 
 (defrecord NagiosCheck [#^java.io.File root]
-  ACheck
+  cmis.check.ACheck
   (perform [_ ds] (perform-check ds root)))

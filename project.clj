@@ -23,6 +23,7 @@
                  [org.clojure/data.xml "0.0.7"]
                  [org.clojure/data.zip "0.1.1"]
                  [de.ubercode.clostache/clostache "1.3.1"]
+                 [org.clojure/core.typed "0.2.13"]
                  ]
   :exclusions [org.slf4j/slf4j-log4j12]
   :plugins [[lein-ring "0.8.5"]]

@@ -1,11 +1,8 @@
-(ns cmis.core
-  (:import [cmis.check ACheck]
-           [cmis.datastore ADataStore]))
+(ns cmis.core)
 
 (defn import-checks
   ^{:doc "Import the results to the database"}
-  [^ADataStore datastore
-   checks]
-  (map (fn [^ACheck check] (.perform check datastore))
+  [datastore checks]
+  (map (fn [check] (.perform check datastore))
          checks))
   
