@@ -1,7 +1,8 @@
 (ns cmis.datastore
   (:require [cmis
              [star :as star]
-             [util :as util]])
+             [util :as util]]
+            [clojure.tools.logging :as log])
   (:gen-class))
 
 (defprotocol ADataStore
@@ -12,7 +13,7 @@
 
 (defn timedimension
   [ts]
-  {:ts (java.sql.Date. (clj-time.coerce/to-long ts))
+  {:timestamp (java.sql.Date. (clj-time.coerce/to-long ts))
    :hour (clj-time.core/hour ts)
    :minute (clj-time.core/minute ts)
    :second (clj-time.core/sec ts)
@@ -37,40 +38,57 @@
 
 (defn find-ci-dimension
   [ds hostname]
-  (first (star/find-dimension ds :dim_ci {:name hostname})))
+  (first (star/find-dimension ds :dim_ci {:hostname hostname})))
 
 (defmulti to-star-schema
   (fn [_ val] (set (keys val))))
 
-(defmethod to-star-schema #{:timestamp :hostname :check :unit :value}
-  [ds {:keys [timestamp check unit hostname value]}]
-  (let [time_id (star/slowly-changing-dimension ds :dim_time (timedimension timestamp) [:ts] [:ts])
-        parameter_id (star/slowly-changing-dimension ds :dim_parameter {:name check :unit unit} [:name :unit] [:name :unit])
+(defmethod to-star-schema #{:timestamp :hostname :event :unit :value :environment :labels}
+  [ds {:keys [timestamp event unit hostname value environment labels]}]
+  (let [time_id (star/slowly-changing-dimension ds
+                                                :dim_time
+                                                (timedimension timestamp)
+                                                [:timestamp] [:timestamp])
+        event_id (star/slowly-changing-dimension ds
+                                                 :dim_event
+                                                 {:name event :unit unit}
+                                                 [:name :unit] [:name :unit])
+        environment_id (star/slowly-changing-dimension ds
+                                                       :dim_environment
+                                                       {:environment environment}
+                                                       [:environment] [:environment])
         ci_id (find-ci-dimension ds hostname)
         ci_id* (if (not (nil? ci_id))
                  (:id ci_id)
-                 (star/slowly-changing-dimension ds :dim_ci {:name hostname} [:name] [:name]))
-        site_id (star/slowly-changing-dimension ds :dim_site {:site (site-for-hostname hostname)} [:site] [:site])]
-    (star/insert ds :fact_measurement {:id (util/random-uuid)
-                                       :time_id time_id
-                                       :parameter_id parameter_id
-                                       :ci_id ci_id*
-                                       :site_id site_id
-                                       :value value
-                                       })))
+                 (star/slowly-changing-dimension ds
+                                                 :dim_ci
+                                                 {:hostname hostname}
+                                                 [:hostname] [:hostname]))
+        id (util/random-uuid)
+        fact {:id id
+              :time_id time_id
+              :event_id event_id
+              :ci_id ci_id*
+              :environment_id environment_id
+              :value value}]
+    (log/debug "Saving fact " fact)    
+    (star/insert ds :fact_measurement fact)
+    id))
 
 (defmethod to-star-schema #{:timestamp :ci_id :check :hostname :unit :value}
   [ds {:keys [timestamp check unit hostname value ci_id]}]
   (let [time_id (star/slowly-changing-dimension ds :dim_time (timedimension timestamp) [:ts] [:ts])
         parameter_id (star/slowly-changing-dimension ds :dim_parameter {:name check :unit unit} [:name :unit] [:name :unit])
-        site_id (star/slowly-changing-dimension ds :dim_site {:site (site-for-hostname hostname)} [:site] [:site])]
-    (star/insert ds :fact_measurement {:id (util/random-uuid)
+        site_id (star/slowly-changing-dimension ds :dim_site {:site (site-for-hostname hostname)} [:site] [:site])
+        id (util/random-uuid)]
+    (star/insert ds :fact_measurement {:id id
                                        :time_id time_id
                                        :parameter_id parameter_id
                                        :ci_id ci_id
                                        :site_id site_id
                                        :value value
-                                       })))
+                                       })
+    id))
 
 (defrecord StarDataStore [ds]
   ADataStore

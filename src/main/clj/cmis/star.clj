@@ -3,7 +3,8 @@
             [clojure.java.jdbc :as j]
             [clojure.java.jdbc.sql :as s]
             [clj-time.core :as time]
-            [clj-time.coerce :as coerce]))
+            [clj-time.coerce :as coerce]
+            [clojure.tools.logging :as log]))
 
 (defn in?
   [seq el]
@@ -44,6 +45,7 @@
 
 (defn slowly-changing-dimension
   [ds table values keys identifiers]
+  (log/debug "Saving to slowly changing dimension " table " " values)
   (let [keymap             (assoc (select-keys values keys) :stopped_at nil)
         identifiermap      (select-keys values identifiers)
         add-to-cache!      (fn [k v] (swap! cache assoc table (assoc (get @cache table) k v)))
