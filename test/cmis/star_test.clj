@@ -54,6 +54,6 @@
                     hosts))
 
           (is (every? (fn [h] (not (nil? (:created_at h)))) hosts))
-          ))      
+          ))
       )))
         

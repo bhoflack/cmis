@@ -6,16 +6,28 @@
             [clj-time.coerce :as coerce]
             [clojure.tools.logging :as log]))
 
-(defn in?
-  [seq el]
-  (some #(= el %) seq))
+(defprotocol AUUIDCache
+  ^{:doc "The protocol to describe a uuid cache."}
+  (put-uuid! [cache table key value] "Put an entry in the cache for the given table,  key and value")
+  (get-uuid [cache table key] "Get an entry from the cache from the given table and key")
+  (clear! [cache] "Clear the cache"))
 
-(def dimensions (atom {}))
-(def cache (atom {}))
+(deftype MemoryCache [cache]
+  ^{:doc "An in memory implementation of a uuid cache."}
+  AUUIDCache
+  (put-uuid! [this table key value]
+    (swap! cache assoc table (get @cache table)))
 
-(defn clear-cache [] (swap! cache {}))
+  (get-uuid [this table key]
+    (get (get @cache table) key))
 
-(defn mark-previous-dimensions-as-stopped
+  (clear! [this]
+    (swap! cache (atom {}))))
+
+(def ^{:doc "The default AUUIDCache implementation,  used by slowly-changing-dimension."}
+  default-cache (MemoryCache. (atom {})))
+
+(defn- mark-previous-dimensions-as-stopped
   "Update a dimension as stopped where the identifiers match and hasn't been stopped before"
   [ds table identifiermap]  
   (let [identifiermap* (assoc identifiermap :stopped_at nil)]
@@ -23,28 +35,7 @@
     (j/update! ds table {:stopped_at (coerce/to-timestamp (time/now))}
                (s/where identifiermap*))))
 
-(defn- to-hash-map [els]
-  (reduce (fn [hm [k v]]
-            (assoc hm k v))
-          {}
-          els))
-
-(defmulti convert-uuid (fn [ds _] (:subprotocol ds)))
-
-(defmethod convert-uuid "hsqldb"
-  [ds values]
-  (log/debug "Converting uuid's for " values)
-  (to-hash-map
-   (map (fn [[k v]]
-          (if (= java.util.UUID (type v))
-            [k (.toString v)]
-            [k v])) values)))
-
-(defmethod convert-uuid :default
-  [ds values]
-  values)
-
-(defn insert-to-db!
+(defn- insert-to-db!
   "Insert a new dimension to the database
 
    Save a new dimension to the database,  and mark previous open dimension as closed ( if any )
@@ -61,8 +52,8 @@
   (let [values* (assoc values
                   :id uuid
                   :created_at (coerce/to-timestamp (time/now)))
-        values** (convert-uuid ds values*)
-        identifiermap* (convert-uuid ds identifiermap)]
+        values** (util/convert-uuid ds values*)
+        identifiermap* (util/convert-uuid ds identifiermap)]
     (log/debug "Inserting to db table " table " uuid " uuid " values " values** " identifiers " identifiermap)
     (mark-previous-dimensions-as-stopped ds table identifiermap*)
     (j/insert! ds table values**)))
@@ -78,27 +69,47 @@
                        (s/where where-clause*)))))
 
 (defn slowly-changing-dimension
-  [ds table values keys identifiers]
-  (log/info "Saving to slowly changing dimension " table " " values)
-  (let [keymap             (assoc (select-keys values keys) :stopped_at nil)
-        identifiermap      (select-keys values identifiers)
-        add-to-cache!      (fn [k v] (swap! cache assoc table (assoc (get @cache table) k v)))
-        get-from-db        (fn [] (first (j/query ds (s/select :id table (s/where keymap)))))
-        uuid-from-cache    (get (get @cache table) keymap)]
-    (log/debug "Checking if entry exists for table " table " keys " keys " identifiers " identifiers " " identifiermap)
-    (if uuid-from-cache
-       uuid-from-cache
-      (let [uuid-from-db (:id (get-from-db))]
-        (if uuid-from-db
-          (do
-            (add-to-cache! keymap uuid-from-db)
-            uuid-from-db)
-          (let [uuid (util/random-uuid)]
-            (insert-to-db! ds table uuid values identifiermap)
-            (add-to-cache! keymap uuid)
-            uuid))))))
+  "Save an entry into a slowly changing dimension
+
+   Parameters
+     - ds          - a map containing the datasource data
+     - table       - a string or keyword containing the table name
+     - values      - a map containing the values,  with as keys the column name and values the value
+     - keys        - a seq containing the keys that mark when the dimension should be updated
+     - identifiers - a seq containing the keys that identify the dimension
+     - cache       - the AUuidCache cache to use ( optional,  defaults to default-cache )
+
+   Example
+     (slowly-changing-dimension ds
+                                :dim_ci
+                                {:memory 2048 :hostname \"test\" :num_cpus 2}
+                                [:hostname :memory :num_cpus]
+                                [:hostname])
+     ; returns #uuid \"68333cc2-5e39-43d7-9410-7ca5f7d34dba\"
+
+   Returns the uuid for the entry."
+  ([ds table values keys identifiers cache]
+     (log/info "Saving to slowly changing dimension " table " " values)
+     (let [keymap             (assoc (select-keys values keys) :stopped_at nil)
+           identifiermap      (select-keys values identifiers)
+           get-from-db        (fn [] (first (j/query ds (s/select :id table (s/where keymap)))))
+           uuid-from-cache    (get-uuid cache table keymap)]
+       (log/debug "Checking if entry exists for table " table " keys " keys " identifiers " identifiers " " identifiermap)
+       (if uuid-from-cache
+         uuid-from-cache
+         (let [uuid-from-db (:id (get-from-db))]
+           (if uuid-from-db
+             (do
+               (put-uuid! cache table  keymap uuid-from-db)
+               uuid-from-db)
+             (let [uuid (util/random-uuid)]
+               (insert-to-db! ds table uuid values identifiermap)
+               (put-uuid! cache table keymap uuid)
+               uuid))))))
+  ([ds table values keys identifiers]
+     (slowly-changing-dimension ds table values keys identifiers default-cache)))
 
 (defn insert
   [ds table value]
   (j/insert! ds table
-             (convert-uuid ds value)))
+             (util/convert-uuid ds value)))
