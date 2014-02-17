@@ -17,8 +17,9 @@
 
 (defn mark-previous-dimensions-as-stopped
   "Update a dimension as stopped where the identifiers match and hasn't been stopped before"
-  [ds table identifiermap]
+  [ds table identifiermap]  
   (let [identifiermap* (assoc identifiermap :stopped_at nil)]
+    (log/debug "Marking dimensions as stopped which match " identifiermap*)
     (j/update! ds table {:stopped_at (coerce/to-timestamp (time/now))}
                (s/where identifiermap*))))
 
@@ -32,6 +33,7 @@
 
 (defmethod convert-uuid "hsqldb"
   [ds values]
+  (log/debug "Converting uuid's for " values)
   (to-hash-map
    (map (fn [[k v]]
           (if (= java.util.UUID (type v))
@@ -45,7 +47,16 @@
 (defn insert-to-db!
   "Insert a new dimension to the database
 
-   Save a new dimension to the database,  and mark previous open dimension as closed ( if any )"
+   Save a new dimension to the database,  and mark previous open dimension as closed ( if any )
+
+   Parameters
+     - ds            - a map containing the datasource
+     - table         - the name of the table
+     - uuid          - the uuid of the entry
+     - values        - a map containing the column name and the value
+     - identifiermap - a map containing the identifiers
+
+   Returns"
   [ds table uuid values identifiermap]
   (let [values* (assoc values
                   :id uuid
