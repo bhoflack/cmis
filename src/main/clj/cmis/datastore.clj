@@ -38,7 +38,10 @@
 
 (defn find-ci-dimension
   [ds hostname]
-  (first (star/find-dimension ds :dim_ci {:hostname hostname})))
+  (log/debug "finding ci for hostname " hostname)
+  (let [cis (star/find-dimension ds :dim_ci {:hostname hostname})]
+    (log/debug "found the following ci's: " cis)
+    (first cis)))
 
 (defmulti to-star-schema
   (fn [_ val] (set (keys val))))

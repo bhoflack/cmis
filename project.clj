@@ -22,6 +22,7 @@
                  [org.clojure/core.typed "0.2.26"]
                  [org.hsqldb/hsqldb "2.3.1" :scope "test"]
                  [org.clojure/tools.logging "0.2.6"]
+                 [honeysql "0.4.3"]
                  [log4j "1.2.17"]]
   :plugins [[lein-ring "0.8.5"]]
   :ring {:handler cmis.web/handler}

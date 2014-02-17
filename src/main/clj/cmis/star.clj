@@ -22,6 +22,26 @@
     (j/update! ds table {:stopped_at (coerce/to-timestamp (time/now))}
                (s/where identifiermap*))))
 
+(defn- to-hash-map [els]
+  (reduce (fn [hm [k v]]
+            (assoc hm k v))
+          {}
+          els))
+
+(defmulti convert-uuid (fn [ds _] (:subprotocol ds)))
+
+(defmethod convert-uuid "hsqldb"
+  [ds values]
+  (to-hash-map
+   (map (fn [[k v]]
+          (if (= java.util.UUID (type v))
+            [k (.toString v)]
+            [k v])) values)))
+
+(defmethod convert-uuid :default
+  [ds values]
+  values)
+
 (defn insert-to-db!
   "Insert a new dimension to the database
 
@@ -29,9 +49,12 @@
   [ds table uuid values identifiermap]
   (let [values* (assoc values
                   :id uuid
-                  :created_at (coerce/to-timestamp (time/now)))]
-    (mark-previous-dimensions-as-stopped ds table identifiermap)
-    (j/insert! ds table values*)))
+                  :created_at (coerce/to-timestamp (time/now)))
+        values** (convert-uuid ds values*)
+        identifiermap* (convert-uuid ds identifiermap)]
+    (log/debug "Inserting to db table " table " uuid " uuid " values " values** " identifiers " identifiermap)
+    (mark-previous-dimensions-as-stopped ds table identifiermap*)
+    (j/insert! ds table values**)))
 
 (defn find-dimension
   "Query for the uuid in the given table where the dimension matches the where clause
@@ -45,12 +68,13 @@
 
 (defn slowly-changing-dimension
   [ds table values keys identifiers]
-  (log/debug "Saving to slowly changing dimension " table " " values)
+  (log/info "Saving to slowly changing dimension " table " " values)
   (let [keymap             (assoc (select-keys values keys) :stopped_at nil)
         identifiermap      (select-keys values identifiers)
         add-to-cache!      (fn [k v] (swap! cache assoc table (assoc (get @cache table) k v)))
         get-from-db        (fn [] (first (j/query ds (s/select :id table (s/where keymap)))))
-        uuid-from-cache    (get (get @cache table) keymap)]    
+        uuid-from-cache    (get (get @cache table) keymap)]
+    (log/debug "Checking if entry exists for table " table " keys " keys " identifiers " identifiers " " identifiermap)
     (if uuid-from-cache
        uuid-from-cache
       (let [uuid-from-db (:id (get-from-db))]
@@ -65,4 +89,5 @@
 
 (defn insert
   [ds table value]
-  (j/insert! ds table value))
+  (j/insert! ds table
+             (convert-uuid ds value)))
