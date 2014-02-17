@@ -3,4 +3,5 @@
   (:gen-class))
 
 (defprotocol ACheck
-  (perform [this ^DataStore ds] "Perform the checks and enter the results in the datasource"))
+  (perform [this ^DataStore ds]
+    "Perform the checks and enter the results in the datasource"))
