@@ -1,4 +1,5 @@
 (ns cmis.star
+  ^{:doc "A simple module to provide support for start scheme databases."}
   (:require [cmis.util :as util]
             [clojure.java.jdbc :as j]
             [clojure.java.jdbc.sql :as s]
