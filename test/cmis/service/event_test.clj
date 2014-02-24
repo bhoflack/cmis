@@ -1,6 +1,6 @@
-(ns cmis.event.service-test
+(ns cmis.service.event-test
   (:use clojure.test
-        cmis.event.service
+        cmis.service.event
         cmis.event.model)
   (:require [cmis.db :as db]
             [clj-time.core :as time]
@@ -12,7 +12,7 @@
             :subname "mem:cmis"
             :user "sa"
             :password ""}
-        ss (cmis.event.service.StarService. ds)]
+        ss (cmis.service.event.StarService. ds)]
     (db/with-database! ds
       (testing "Inserting to the event service"
         (let [event1 (create-event (time/now)

@@ -36,18 +36,11 @@
    (partial re-matches #"[\w-]*.elex.be") "diegem"
    :else "unknown"))
 
-(defn find-ci-dimension
-  [ds hostname]
-  (log/debug "finding ci for hostname " hostname)
-  (let [cis (star/find-dimension ds :dim_ci {:hostname hostname})]
-    (log/debug "found the following ci's: " cis)
-    (first cis)))
-
 (defmulti to-star-schema
   (fn [_ val] (set (keys val))))
 
-(defmethod to-star-schema #{:timestamp :hostname :event :unit :value :environment :labels}
-  [ds {:keys [timestamp event unit hostname value environment labels]}]
+(defmethod to-star-schema #{:timestamp :name :event :unit :value :environment :labels}
+  [ds {:keys [timestamp event unit name value environment labels]}]
   (let [time_id (star/slowly-changing-dimension ds
                                                 :dim_time
                                                 (timedimension timestamp)
@@ -60,18 +53,15 @@
                                                        :dim_environment
                                                        {:environment environment}
                                                        [:environment] [:environment])
-        ci_id (find-ci-dimension ds hostname)
-        ci_id* (if (not (nil? ci_id))
-                 (:id ci_id)
-                 (star/slowly-changing-dimension ds
-                                                 :dim_ci
-                                                 {:hostname hostname}
-                                                 [:hostname] [:hostname]))
+        ci_id (star/slowly-changing-dimension ds
+                                              :dim_ci
+                                              {:name name}
+                                              [:name] [:name])
         id (util/random-uuid)
         fact {:id id
               :time_id time_id
               :event_id event_id
-              :ci_id ci_id*
+              :ci_id ci_id
               :environment_id environment_id
               :value value}]
     (log/debug "Saving fact " fact)    
