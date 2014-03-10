@@ -23,10 +23,13 @@
                  [org.hsqldb/hsqldb "2.3.1" :scope "test"]
                  [org.clojure/tools.logging "0.2.6"]
                  [honeysql "0.4.3"]
-                 [log4j "1.2.17"]]
+                 [log4j "1.2.17"]
+                 [org.clojure/tools.cli "0.3.1"]
+                 [aleph "0.3.2"]]
   :plugins [[lein-ring "0.8.5"]]
   :ring {:handler cmis.web/handler}
   :repositories {"conjars" "http://conjars.org/repo/"}
   :profiles {:dev {:dependencies [[org.apache.hadoop/hadoop-core "0.20.2-dev"]]}}
   :source-paths ["src/main/clj"]
-  :java-source-paths ["src/main/java"])
+  :java-source-paths ["src/main/java"]
+  :main cmis.core)
