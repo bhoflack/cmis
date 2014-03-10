@@ -1,0 +1,26 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"><link rel="stylesheet" type="text/css" href="_cistatus_data/nagios-common.css"><link rel="stylesheet" type="text/css" href="_cistatus_data/nagios-status.css">
+    	<script type="text/javascript">
+	    <!--
+	    spe=500;
+	    na=document.all.tags("blink");
+	    swi=1;
+	    bringBackBlinky();
+	    function bringBackBlinky() {
+		if (swi == 1) {
+		    sho="visible";
+		    swi=0;
+		}
+		else {
+		    sho="hidden";
+		    swi=1;
+		}
+		for(i=0;i<na.length;i++) {
+		    na[i].style.visibility=sho;
+		}
+		setTimeout("bringBackBlinky()", spe);
+	    }
+	    -->
+	</script>
+	</head><body>
+        <table></table><table><tbody><tr><th class="serviceTotals">Host</th><th class="serviceTotals">Crit</th></tr><tr><td class="statusEVEN" style="background-color:white" align="left" valign="center"><a style="color:black" href="http://nagios3.elex.be/cgi-bin/nagios3/status.cgi?host=itbi.colo.elex.be" target="_blank"> itbi.colo.elex.be </a></td><td class="serviceTotals" style="background-color:white" align="left" valign="center"><a style="color:black" href="http://nagios3.elex.be/cgi-bin/nagios3/status.cgi?host=itbi.colo.elex.be&amp;servicestatustypes=16&amp;hoststatustypes=15" target="_blank"> 0 </a></td></tr></tbody></table></body></html>

@@ -10,7 +10,7 @@
                  [compojure "1.1.5"]
                  [hiccup "1.0.3"]
                  [org.clojure/data.json "0.2.2"]
-                 [enlive "1.1.1"]
+                 [enlive "1.1.5"]
                  [org.clojars.lstoll/libvirt "0.4.9.1"]
                  [net.java.dev.jna/jna "3.3.0"]
                  [the/parsatron "0.0.4"]
