@@ -1,4 +1,5 @@
 (ns cmis.cmdb
+  ^{:doc "Functions for reading the cmdb"}    
   (:use net.cgrand.enlive-html))
 
 (defn id-contains?
@@ -26,7 +27,24 @@
   (extract resource [:body :div#content-core (id-contains? id) :> text-node]))
 
 (defn parse-product-page
-  "Extract the product data from the product page."
+  "Extract the product data from the product page.
+
+   Parameters
+     - is - An inputstream containing the product page
+
+   Returns a hash containing:
+     :name - the string containing the product name
+     :background - the string containing the background of the product
+     :functionality - the string containing the functionality of the product
+     :critical_level - the integer containing the critical_level of the service ( higher is more critical )
+     :business_owner - the string containing the business owner
+     :development - the string containing the development responsible
+     :ops_support - the string containing the ops support responsible
+     :users - the string containing the identified users
+     :version - the string containing the version
+     :cfengine_classes - the string containing the cfengine classes
+     :nagios_classes - the string containing the nagios classes
+     :installed_instances - the seq containing the strings of the installed instances"
   [^java.io.InputStream is]
   (let [res (-> is html-resource)]
     {:name (clojure.string/trim
