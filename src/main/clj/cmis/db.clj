@@ -10,12 +10,13 @@
   [ds]
   (j/with-connection ds
     (j/do-commands
+     "DROP TABLE TEMP_APPS_FOR_HOST IF EXISTS"
+     "DROP TABLE FACT_HOST_APPLICATION IF EXISTS"
      "DROP TABLE FACT_MEASUREMENT IF EXISTS"
      "DROP TABLE DIM_TIME IF EXISTS"
      "DROP TABLE DIM_CI IF EXISTS"
      "DROP TABLE DIM_EVENT IF EXISTS"
      "DROP TABLE DIM_ENVIRONMENT IF EXISTS"
-     "DROP TABLE DIM_APPLICATION IF EXISTS"
      )))
 
 (defmulti create!
@@ -48,6 +49,16 @@
                           [:num_cpus       :integer]
                           [:memory         :integer]
                           [:parent         "varchar(36)"      "references dim_ci (id)"]
+                          [:background     "VARCHAR(1000000)"]
+                          [:functionality  "VARCHAR(1000000)"]
+                          [:critical_level :integer]
+                          [:business_owner "varchar(50)"]
+                          [:development    "varchar(50)"]
+                          [:ops_support    "varchar(50)"]
+                          [:users          "varchar(50)"]
+                          [:version        "varchar(50)"]
+                          [:cfengine_classes "varchar(50)"]
+                          [:nagios_classes "varchar(50)"]
                           [:created_at     :timestamp]
                           [:stopped_at     :timestamp])
       (j/create-table-ddl :dim_event
@@ -61,28 +72,24 @@
                           [:environment    "varchar(50)"]
                           [:created_at     :timestamp]
                           [:stopped_at     :timestamp])      
-      (j/create-table-ddl :dim_application
-                          [:id             "varchar(36)"      "PRIMARY KEY"]
-                          [:name           "varchar(50)"]
-                          [:background     "VARCHAR(1000000)"]
-                          [:functionality  "VARCHAR(1000000)"]
-                          [:critical_level :integer]
-                          [:business_owner "varchar(50)"]
-                          [:development    "varchar(50)"]
-                          [:ops_support    "varchar(50)"]
-                          [:users          "varchar(50)"]
-                          [:version        "varchar(50)"]
-                          [:cfengine_classes "varchar(50)"]
-                          [:nagios_classes "varchar(50)"])
       (j/create-table-ddl :fact_measurement
                           [:id             "varchar(36)"      "PRIMARY KEY"]
                           [:time_id        "varchar(36)"      "references dim_time (id)"]
                           [:ci_id          "varchar(36)"      "references dim_ci (id)"]
                           [:event_id       "varchar(36)"      "references dim_event (id)"]
                           [:environment_id "varchar(36)"      "references dim_environment (id)"]
-                          [:application_id "varchar(36)"      "references dim_application (id)"]
+                          [:application_id "varchar(36)"      "references dim_ci (id)"]
                           [:value          :integer     "not null"])
-
+      (j/create-table-ddl :fact_host_application
+                          [:id             "varchar(36)"      "PRIMARY KEY"]
+                          [:measurement_id "varchar(36)"      "references fact_measurement (id)"]
+                          [:ci_id          "varchar(36)"      "references dim_ci (id)"]
+                          [:application_id "varchar(36)"      "references dim_ci (id)"]
+                          [:time_id        "varchar(36)"      "references dim_time (id)"])
+      (j/create-table-ddl :temp_apps_for_host
+                          [:id             "varchar(36)"      "PRIMARY KEY"]
+                          [:ci_id          "varchar(36)"      "references dim_ci (id)"]
+                          [:application_id "varchar(36)"      "references dim_ci (id)"])
       )))
 
 (defmethod create! "postgresql"  
@@ -111,6 +118,16 @@
                           [:num_cpus       :integer]
                           [:memory         :integer]
                           [:parent         :uuid      "references dim_ci (id)"]
+                          [:background     :text]
+                          [:functionality  :text]
+                          [:critical_level :integer]
+                          [:business_owner "varchar(50)"]
+                          [:development    "varchar(50)"]
+                          [:ops_support    "varchar(50)"]
+                          [:users          "varchar(50)"]
+                          [:version        "varchar(50)"]
+                          [:cfengine_classes "varchar(50)"]
+                          [:nagios_classes "varchar(50)"]
                           [:created_at     :timestamp]
                           [:stopped_at     :timestamp])
       (j/create-table-ddl :dim_event
@@ -124,26 +141,24 @@
                           [:environment    "varchar(50)"]
                           [:created_at     :timestamp]
                           [:stopped_at     :timestamp])
-      (j/create-table-ddl :dim_application
-                          [:id             :uuid      "PRIMARY KEY"]
-                          [:name           "varchar(50)"]
-                          [:background     :text]
-                          [:functionality  :text]
-                          [:critical_level :integer]
-                          [:business_owner "varchar(50)"]
-                          [:development    "varchar(50)"]
-                          [:ops_support    "varchar(50)"]
-                          [:users          "varchar(50)"]
-                          [:version        "varchar(50)"]
-                          [:cfengine_classes "varchar(50)"]
-                          [:nagios_classes "varchar(50)"])
       (j/create-table-ddl :fact_measurement
                           [:id             :uuid      "PRIMARY KEY"]
                           [:time_id        :uuid      "references dim_time (id)"]
                           [:ci_id          :uuid      "references dim_ci (id)"]
                           [:event_id       :uuid      "references dim_event (id)"]
                           [:environment_id :uuid      "references dim_environment (id)"]
-                          [:value          :integer   "not null"]))))
+                          [:value          :integer   "not null"])
+      (j/create-table-ddl :fact_host_application
+                          [:id             :uuid      "PRIMARY KEY"]
+                          [:measurement_id :uuid      "references fact_measurement (id)"]
+                          [:ci_id          :uuid      "references dim_ci (id)"]
+                          [:application_id :uuid      "references dim_ci (id)"]
+                          [:time_id        :uuid      "references dim_time (id)"])
+      (j/create-table-ddl :temp_apps_for_host
+                          [:id             :uuid      "PRIMARY KEY"]
+                          [:ci_id          :uuid      "references dim_ci (id)"]
+                          [:application_id :uuid      "references dim_ci (id)"])
+      )))
 
 (defmacro with-database!
   "Execute a body with as context a database with the datascheme"
