@@ -1,6 +1,7 @@
 (ns cmis.cmdb
   ^{:doc "Functions for reading the cmdb"}    
-  (:use net.cgrand.enlive-html))
+  (:use net.cgrand.enlive-html)
+  (:require [cmis.util :refer (uri->stream)]))
 
 (defn id-contains?
   [expr]
@@ -64,3 +65,52 @@
      :installed_instances (-> (html-id-like res "InstalledInstances")
                               (clojure.string/split #"\n"))
      }))
+
+(defn- extract-name-and-url
+  [a]
+  {:uri (some-> a
+                (get-in [:attrs :href])
+                (java.net.URI.))
+   :name (first (get a :content))})
+
+(defn parse-product-list-page
+  "Extract the different products and links in a product list page
+
+   Parameters
+     - is - An inputstream containing the product list page
+
+   Returns a hash containing
+     - next-url a string containing the next url
+     - products a seq of hashes containing:
+       - name - a string containing the product name
+       - uri - a java.net.URI containing the url of the product page"
+  [^java.io.InputStream is]
+  (let [res (html-resource is)]
+    {:next-url (some-> res
+                   (select [:div.listingBar :span.next :a])
+                   (->> (map #(get-in % [:attrs :href])))
+                   (first)
+                   (java.net.URI.))
+     :products (-> res
+                   (select [:dt :span.summary :a.contenttype-ci])
+                   (->> (map (partial extract-name-and-url))))}))
+
+(defn list-products
+  "List all products on the cmdb
+
+   Parameters
+     - is - An inputstream containing the first product page
+
+   Returns a list of hashes containing
+     - name - a string containing the product name
+     - uri - a java.net.URI containing the product link"
+  [^java.io.InputStream basepageis]
+  (loop [is basepageis
+         products {}]
+    (if (nil? is)
+        products
+        (let [plp (-> is (parse-product-list-page))]
+          (recur (some-> plp
+                         (:next-url)
+                         (uri->stream))
+                 (concat products (:products plp)))))))    

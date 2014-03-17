@@ -27,5 +27,19 @@
       (is (= (diff expected (parse-product-page fis))
              (seq [nil nil expected]))))
     ))
-  
-  
+
+(deftest parse-product-list-page-test
+  (testing "Parse a product list page"
+    (is (= 100 (-> "test-resources/products_page_1.html"
+                   (java.io.FileInputStream.)
+                   (parse-product-list-page)
+                   (:products)
+                   (count)))))
+
+  (testing "List all products in all pages"
+    (is (= 332
+           (-> "test-resources/products_page_1.html"
+               (java.io.FileInputStream.)
+               (list-products)
+               (count))))))
+

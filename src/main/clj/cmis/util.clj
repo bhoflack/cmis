@@ -36,3 +36,18 @@
 (defmethod convert-uuid :default
   [ds values]
   values)
+
+(defmulti uri->stream "Create an inputstream for a path" #(.getScheme %))
+
+(defmethod uri->stream nil
+  [^java.net.URI uri]
+  (-> uri
+      (.getPath)
+      (java.io.File.)
+      (java.io.FileInputStream.)))
+
+(defmethod uri->stream "http"
+  [^java.net.URI uri]
+  (-> uri
+      (.toURL)
+      (.openStream)))
