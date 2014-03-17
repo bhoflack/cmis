@@ -16,6 +16,17 @@
     :validate [#(< 0 % 0x10000) "Must be a number between 0 and 65536"]]
    ["-h" "--help"]])
 
+(defn retrieve-product-information
+  "Create a list with the product information for all products"
+  [baseurl]
+  (-> baseurl
+      (java.net.URL.)
+      (.openStream)
+      (list-products)
+      (->> (map :uri))
+      (->> (map uri->stream))
+      (->> (map parse-product-page))))
+
 (defn start
   [opts]
   (->> opts

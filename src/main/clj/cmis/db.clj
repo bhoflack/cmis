@@ -88,8 +88,10 @@
                           [:time_id        "varchar(36)"      "references dim_time (id)"])
       (j/create-table-ddl :temp_apps_for_host
                           [:id             "varchar(36)"      "PRIMARY KEY"]
-                          [:ci_id          "varchar(36)"      "references dim_ci (id)"]
-                          [:application_id "varchar(36)"      "references dim_ci (id)"])
+                          [:hostname       "varchar(50)"]
+                          [:application_id "varchar(36)"      "references dim_ci (id)"]
+                          [:created_at     :timestamp]
+                          [:stopped_at     :timestamp])
       )))
 
 (defmethod create! "postgresql"  
@@ -156,8 +158,10 @@
                           [:time_id        :uuid      "references dim_time (id)"])
       (j/create-table-ddl :temp_apps_for_host
                           [:id             :uuid      "PRIMARY KEY"]
-                          [:ci_id          :uuid      "references dim_ci (id)"]
-                          [:application_id :uuid      "references dim_ci (id)"])
+                          [:hostname       "varchar(50)"]
+                          [:application_id :uuid      "references dim_ci (id)"]
+                          [:created_at     :timestamp]
+                          [:stopped_at     :timestamp])
       )))
 
 (defmacro with-database!
