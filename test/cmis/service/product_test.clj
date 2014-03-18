@@ -1,9 +1,7 @@
 (ns cmis.service.product-test
   (:use clojure.test
         cmis.service.product)
-  (:require [cmis.db :as db]
-            [clojure.java.jdbc :as jdbc]
-            [honeysql.core :as sql]))
+  (:require [cmis.db :as db]))
 
 (deftest insert-test
     (let [ds {:subprotocol "hsqldb"
@@ -50,13 +48,9 @@
             (doall (for [hostname ["confluence-xpeqt-test.colo.elex.be"
                                    "confluence-xpeqt-uat.colo.elex.be"
                                    "confluence-xpeqt.colo.elex.be"]]
-                     
-                     (= (.toString productid)
-                        (jdbc/query ds
-                                    (sql/format {:select [:application_id]
-                                                 :from [:temp_apps_for_host]
-                                                 :where [:= :hostname hostname]})))))
-
+                   
+                       (is (some #(= productid %)
+                                 (.products-for-hostname ps hostname)))))
             
             )))))
 

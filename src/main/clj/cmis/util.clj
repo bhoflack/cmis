@@ -3,6 +3,8 @@
 
 (defn random-uuid [] (java.util.UUID/randomUUID))
 
+(defn string->uuid [s] (java.util.UUID/fromString s))
+
 (defn each-line
   "Perform actions on each line of a file"
   [file & fns]

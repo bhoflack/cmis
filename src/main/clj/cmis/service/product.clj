@@ -1,8 +1,13 @@
 (ns cmis.service.product
-  (:require [cmis.star :as star]))
+  ^{:doc "Services related to products"}
+  (:require [cmis.star :as star]
+            [cmis.util :refer [string->uuid]]
+            [clojure.java.jdbc :as jdbc]
+            [honeysql.core :as sql]))
 
 (defprotocol AProductService
-  (put [ps prod]))
+  (put [ps prod] "Put a product in the product service")
+  (products-for-hostname [ps hostname] "Get a list of all product ci uuid's for the given hostname"))
 
 (deftype ProductService
     [ds]
@@ -32,5 +37,15 @@
                                           :hostname instance}
                                          [:hostname]
                                          [:hostname :application_id])))
-      )))
-                                                   
+      appid
+      ))
+
+  (products-for-hostname [_ hostname]
+    (some-> ds
+            (jdbc/query
+             (sql/format {:select [:application_id]
+                          :from [:temp_apps_for_host]
+                          :where [:= :hostname hostname]}))
+            (->> (map :application_id))
+            (->> (map string->uuid)))
+    ))
