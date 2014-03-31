@@ -3,14 +3,14 @@
   (:require [cmis.star :as star]
             [cmis.util :refer [string->uuid]]
             [clojure.java.jdbc :as jdbc]
-            [honeysql.core :as sql]))
+            [honeysql.core :as sql]
+            [clojure.tools.logging :as log]))
 
 (defprotocol AProductService
   (put [ps prod] "Put a product in the product service")
   (products-for-hostname [ps hostname] "Get a list of all product ci uuid's for the given hostname"))
 
-(deftype ProductService
-    [ds]
+(deftype ProductService [ds]
   AProductService
   (put [_ product]
     (let [product* (dissoc product :installed_instances)
@@ -29,14 +29,13 @@
                                                  :cfengine_classes
                                                  :business_owner])]
 
-      (doall
-       (for [instance (:installed_instances product)]
-         (star/slowly-changing-dimension ds
-                                         :temp_apps_for_host
-                                         {:application_id appid
-                                          :hostname instance}
-                                         [:hostname]
-                                         [:hostname :application_id])))
+      (doseq [instance (:installed_instances product)]        
+        (star/slowly-changing-dimension ds
+                                        :temp_apps_for_host
+                                        {:application_id appid
+                                         :hostname instance}
+                                        [:hostname]
+                                        [:hostname :application_id]))
       appid
       ))
 
