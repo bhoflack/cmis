@@ -53,8 +53,8 @@
   (let [values* (assoc values
                   :id uuid
                   :created_at (coerce/to-timestamp (time/now)))
-        values** (util/convert-uuid ds values*)
-        identifiermap* (util/convert-uuid ds identifiermap)]
+        values** (util/convert-uuids ds values*)
+        identifiermap* (util/convert-uuids ds identifiermap)]
     (log/debug "Inserting to db table " table " uuid " uuid " values " values** " identifiers " identifiermap)
     (mark-previous-dimensions-as-stopped ds table identifiermap*)
     (j/insert! ds table values**)))
@@ -113,4 +113,4 @@
 (defn insert
   [ds table value]
   (j/insert! ds table
-             (util/convert-uuid ds value)))
+             (util/convert-uuids ds value)))
