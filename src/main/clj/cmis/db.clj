@@ -17,6 +17,7 @@
      "DROP TABLE DIM_CI IF EXISTS"
      "DROP TABLE DIM_EVENT IF EXISTS"
      "DROP TABLE DIM_ENVIRONMENT IF EXISTS"
+     "DROP TABLE IDEMPOTENT_NAGIOS_ARCHIVES IF EXISTS"
      )))
 
 (defmulti create!
@@ -92,6 +93,11 @@
                           [:application_id "varchar(36)"      "references dim_ci (id)"]
                           [:created_at     :timestamp]
                           [:stopped_at     :timestamp])
+      (j/create-table-ddl :idempotent_nagios_archives
+                          [:id             "varchar(36)"      "PRIMARY KEY"]
+                          [:key            "varchar(255)"]
+                          [:created_at     :timestamp])
+      
       )))
 
 (defmethod create! "postgresql"  
@@ -162,6 +168,10 @@
                           [:application_id :uuid      "references dim_ci (id)"]
                           [:created_at     :timestamp]
                           [:stopped_at     :timestamp])
+      (j/create-table-ddl :idempotent_nagios_archives
+                          [:id             :uuid      "PRIMARY KEY"]
+                          [:key            "varchar(255)"]
+                          [:created_at     :timestamp])
       )))
 
 (defmacro with-database!
