@@ -23,21 +23,18 @@
 (defmethod int-value :default
   [d] (throw (Exception. (str "No method for type " d " type: " (type d)))))
 
-(defmulti ^{:doc "Function used to support uuid's for different databases"}
-  convert-uuid (fn [ds _] (:subprotocol ds)))
+(defmulti convert-uuid (fn [ds _] (:subprotocol ds)))
+(defmethod convert-uuid "hsqldb" [ds value] (.toString value))
+(defmethod convert-uuid :default [ds value] value)
 
-(defmethod convert-uuid "hsqldb"
+(defn convert-uuids "hsqldb"
   [ds values]
-  (log/debug "Converting uuid's for " values)
+  (log/debug "Converting uuid's for " values)  
   (into {}
    (map (fn [[k v]]
           (if (= java.util.UUID (type v))
-            [k (.toString v)]
+            [k (convert-uuid ds v)]
             [k v])) values)))
-
-(defmethod convert-uuid :default
-  [ds values]
-  values)
 
 (defmulti uri->stream "Create an inputstream for a path" #(.getScheme %))
 
