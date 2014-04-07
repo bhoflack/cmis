@@ -113,4 +113,15 @@
           (recur (some-> plp
                          (:next-url)
                          (uri->stream))
-                 (concat products (:products plp)))))))    
+                 (concat products (:products plp)))))))
+
+(defn find-product-information
+  "Create a list with the product information for all products"
+  [baseurl]
+  (some-> baseurl
+          (java.net.URL.)
+          (.openStream)
+          (list-products)
+          (->> (map :uri))
+          (->> (map uri->stream))
+          (->> (map parse-product-page))))

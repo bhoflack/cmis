@@ -3,7 +3,9 @@
 
 (defn random-uuid [] (java.util.UUID/randomUUID))
 
-(defn string->uuid [s] (java.util.UUID/fromString s))
+(defmulti string->uuid type)
+(defmethod string->uuid String [s] (java.util.UUID/fromString s))
+(defmethod string->uuid java.util.UUID [s] s)
 
 (defn each-line
   "Perform actions on each line of a file"

@@ -1,5 +1,6 @@
 (ns cmis.check.nagios
-  (:require [cmis.datastore :refer [ADataStore]]
+  (:import [cmis.service.event AEventService StarService])
+  (:require [cmis.service.event :refer [insert]]
             [cmis.check :refer [ACheck]]
             [clj-time.core :as time]
             [clj-time.coerce :as coerce]
@@ -28,24 +29,23 @@
                                 :msg msg}]
                      (doall (map #(% check) fns))))))))
 
-
 (defmulti perform-check
-  (fn [^cmis.datastore.ADataStore ds
+  (fn [^AEventService es
        ^java.io.File root] (.isDirectory root)))
 
 (defmethod perform-check true
-  [^cmis.datastore.ADataStore ds
+  [^AEventService es
    ^java.io.File directory]
-  (map (partial perform-check ds)
+  (map (partial perform-check es)
        (.listFiles directory)))
 
 (defmethod perform-check false
-  [^cmis.datastore.ADataStore ds
+  [^AEventService es
    ^java.io.File root]
   (each-service-line root
-                     (partial iolatency/extract ds)
-                     (partial cpu/extract ds)
-                     (partial iostat/extract ds)
+                     (partial iolatency/extract es)
+                     (partial cpu/extract es)
+                     (partial iostat/extract es)
                      ))
 
 (defrecord NagiosCheck [#^java.io.File root]

@@ -1,6 +1,7 @@
 (ns cmis.check.nagios.iolatency
-  (:import [cmis.datastore ADataStore])
-  (:require [cmis.util :as u]))
+  (:import [cmis.service.event AEventService])
+  (:require [cmis.util :as u]
+            [cmis.service.event :refer [insert]]))
 
 (def nagios-io-latency #".*- io .* latency=(\d+) ms")
 
@@ -9,15 +10,16 @@
    "ESXi IO write" "io write latency"})
 
 (defn extract
-  [^ADataStore ds {:keys [timestamp hostname msg check]}]
+  [^AEventService ds {:keys [timestamp hostname msg check]}]
   (if (or (= "ESXi IO read" check)
           (= "ESXi IO write" check))  
     (let [m (re-matches nagios-io-latency msg)]
       (if m
         (let [[_ latency] m]
-          (.save ds
-                 {:timestamp timestamp
-                  :hostname hostname
-                  :check (get check-name check)
-                  :unit "ms"
-                  :value (u/int-value latency)}))))))
+          (insert ds
+                  {:timestamp timestamp
+                   :name hostname
+                   :event (get check-name check)
+                   :unit "ms"
+                   :value (u/int-value latency)
+                   :labels []}))))))

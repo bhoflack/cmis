@@ -57,17 +57,25 @@
     (star/insert ds :fact_measurement fact)
     id))
 
-(defmethod to-star-schema #{:timestamp :ci_id :check :hostname :unit :value}
-  [ds {:keys [timestamp check unit hostname value ci_id]}]
-  (let [time_id (star/slowly-changing-dimension ds :dim_time (timedimension timestamp) [:ts] [:ts])
-        parameter_id (star/slowly-changing-dimension ds :dim_parameter {:name check :unit unit} [:name :unit] [:name :unit])
-        site_id (star/slowly-changing-dimension ds :dim_site {:site (site-for-hostname hostname)} [:site] [:site])
+(defmethod to-star-schema #{:timestamp :ci_id :event :unit :value :environment :labels :name}
+  [ds {:keys [timestamp ci_id event unit value environment labels]}]
+  (let [time_id (star/slowly-changing-dimension ds
+                                                :dim_time
+                                                (timedimension timestamp) [:timestamp] [:timestamp])
+        event_id (star/slowly-changing-dimension ds
+                                                 :dim_event
+                                                 {:name event :unit unit}
+                                                 [:name :unit] [:name :unit])
+        environment_id (star/slowly-changing-dimension ds
+                                                       :dim_environment
+                                                       {:environment environment}
+                                                       [:environment] [:environment])
         id (util/random-uuid)]
     (star/insert ds :fact_measurement {:id id
                                        :time_id time_id
-                                       :parameter_id parameter_id
+                                       :event_id event_id
                                        :ci_id ci_id
-                                       :site_id site_id
+                                       :environment_id environment_id
                                        :value value
                                        })
     id))
