@@ -9,7 +9,7 @@
   (contains-entry? [this key] "Verify if a key already contains in the database")
   (put [this key] "Put an entry in the database"))
 
-(defrecord Idempotent [ds]
+(deftype Idempotent [ds]
   AIdempotent
   (contains-entry? [_ key]
     (some-> ds

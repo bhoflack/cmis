@@ -1,6 +1,5 @@
 (ns cmis.util.compress
   ^{:doc "Utilities for (de-)compressing files"}
-
   (:import [org.apache.commons.compress.archivers.tar TarArchiveInputStream]
            [org.apache.commons.compress.compressors.gzip GzipCompressorInputStream])
   )
@@ -14,6 +13,7 @@
            (list-entries tais)))))
 
 (defn decompress-tgz
+  "Decompress a tgz stream into a lazy seq of filename, stream pairs"
   [^java.io.InputStream stream]
   (some-> stream
           (java.io.BufferedInputStream.)

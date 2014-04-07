@@ -25,10 +25,10 @@
                  [honeysql "0.4.3"]
                  [log4j "1.2.17"]
                  [org.clojure/tools.cli "0.3.1"]
-                 [aleph "0.3.2"]
                  [clojurewerkz/quartzite "1.2.0"]
                  [clj-ssh "0.5.7"]
-                 [org.apache.commons/commons-compress "1.8"]]
+                 [org.apache.commons/commons-compress "1.8"]
+                 [org.slf4j/slf4j-simple "1.6.5"]]
   :plugins [[lein-ring "0.8.5"]]
   :ring {:handler cmis.web/handler}
   :repositories {"conjars" "http://conjars.org/repo/"}

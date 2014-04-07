@@ -8,9 +8,9 @@
 (defmethod string->uuid java.util.UUID [s] s)
 
 (defn each-line
-  "Perform actions on each line of a file"
-  [file & fns]
-  (with-open [reader (clojure.java.io/reader file)]
+  "Perform actions on each line of a file / stream"
+  [file-or-stream & fns]
+  (with-open [reader (clojure.java.io/reader file-or-stream)]
     (doseq [line (line-seq reader)]
       (doall
        (map #(% line) fns)))))
