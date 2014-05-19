@@ -3,7 +3,7 @@
   :url "http://github.com/bhoflack/cmis"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.4.0"]
+  :dependencies [[org.clojure/clojure "1.5.0"]
                  [cascalog "1.10.1"]
                  [com.twitter/maple "0.2.7"]
                  [org.clojure/java.jdbc "0.3.0-alpha1"]
