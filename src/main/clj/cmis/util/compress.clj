@@ -20,3 +20,20 @@
           (GzipCompressorInputStream.)
           (TarArchiveInputStream.)
           (list-entries)))
+
+(defn with-decompressed-tgz
+  [^java.io.InputStream stream f]
+  (let [tais (some-> stream
+                     (java.io.BufferedInputStream.)
+                     (GzipCompressorInputStream.)
+                     (TarArchiveInputStream.))]
+    (doall
+     (loop []
+       (let [next (.getNextEntry tais)]
+         (if (nil? next)
+           ()
+           (do
+             (f (.getName next) tais)
+             (recur))))))))
+        
+          

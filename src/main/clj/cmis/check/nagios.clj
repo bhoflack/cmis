@@ -8,9 +8,9 @@
              [iolatency :as iolatency]
              [cpu :as cpu]
              [iostat :as iostat]]
-            [cmis.util.compress :refer [decompress-tgz]]
+            [cmis.util.compress :refer [with-decompressed-tgz]]
             [clojure.tools.logging :as log]
-            [cmis.datastore.idempotent :as idempotent])
+            [cmis.service.idempotent :as idempotent])
   (:import [cmis.service.event AEventService StarService])
   (:use clj-ssh.ssh))
 
@@ -20,7 +20,7 @@
 (defn each-service-line
   "Perform actions on each service line of a file"
   [file-or-stream & fns]
-  (util/each-line file-or-stream
+  (util/each-line-stream file-or-stream
              (fn [line]
                (let [m (re-matches nagios-service-pattern line)]
                  (if m
@@ -52,7 +52,6 @@
 (defrecord NagiosCheck [#^java.io.File root]
   cmis.check.ACheck
   (perform [_ ds] (perform-check ds root)))
-
 
 (defn- list-files-in-dir
   [session idempotent]
@@ -91,8 +90,9 @@
 (defn copy-nagios-files
   "Copy all nagios files that haven't been processed yet
 
-   Returns a list of pairs containing the filename and the stream"
+   Returns the input stream to the tar file"
   [idempotent]
+  (log/info "Copying nagios files from nagios.elex.be")
   (let [agent (ssh-agent {})
         session (session agent "nagios.elex.be" {:strict-host-key-checking :no})]
     (add-identity agent {:private-key-path "/home/brh/.ssh/id_rsa"})
@@ -102,16 +102,22 @@
                (create-tar session)
                (copy-tarfile session "/tmp")
                (remove-tar-file session)
-               (java.io.FileInputStream.)
-               (decompress-tgz))
+               (java.io.FileInputStream.))
       )))
 
 (defn import-events
   "Import the nagios events from the nagios server"
   [idempotent event-service]
-  (some->> idempotent
-           (copy-nagios-files)
-           (map (fn [[f s]]
-                  (log/info "Start processing file " f)
-                  (perform-check event-service s)))
+  (log/info "Importing events from nagios")
+  (some-> idempotent
+          (copy-nagios-files)
+          (with-decompressed-tgz
+            (fn [f s]
+              (let [filename (-> f (java.io.File.) (.getName))]
+                (log/info "Start processing file " f)
+                (try 
+                  (perform-check event-service s)
+                  (idempotent/put idempotent filename)
+                  (catch Exception e
+                    (log/warn "Exception while processing file " f ": " e))))))
            (doall)))

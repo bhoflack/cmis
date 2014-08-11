@@ -15,6 +15,13 @@
       (doall
        (map #(% line) fns)))))
 
+(defn each-line-stream
+  [stream & fns]
+  (let [reader (clojure.java.io/reader stream)]
+    (doseq [line (line-seq reader)]
+      (doall
+       (map #(% line) fns)))))
+
 (defn reverse-cons [seq x] (cons x seq))
 
 (defmulti int-value type)

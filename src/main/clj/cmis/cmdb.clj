@@ -1,7 +1,8 @@
 (ns cmis.cmdb
   ^{:doc "Functions for reading the cmdb"}    
   (:use net.cgrand.enlive-html)
-  (:require [cmis.util :refer (uri->stream)]))
+  (:require [cmis.util :refer (uri->stream)]
+            [clojure.tools.logging :as log]))
 
 (defn id-contains?
   [expr]
@@ -47,24 +48,26 @@
      :nagios_classes - the string containing the nagios classes
      :installed_instances - the seq containing the strings of the installed instances"
   [^java.io.InputStream is]
-  (let [res (-> is html-resource)]
-    {:name (clojure.string/trim
-            (-> res
-                (select [:body :h1#parent-fieldname-title :> text-node])
-                first))
-     :background  (clojure.string/replace (html-id-like res "Background") "\n" "")
-     :functionality (html-id-like res "Functionality")
-     :critical_level (Integer/parseInt (extract-critical-level res "CriticalLevel"))
-     :business_owner (html-id-like res "BusinessOwner")
-     :development (html-id-like res "Development")
-     :ops_support (html-id-like res "OpsSupport")
-     :users (html-id-like res "Users")
-     :version (html-id-like res "version")
-     :cfengine_classes (html-id-like res "CfengineClasses")
-     :nagios_classes (html-id-like res "NagiosClasses")
-     :installed_instances (-> (html-id-like res "InstalledInstances")
-                              (clojure.string/split #"\n"))
-     }))
+  (log/info "Parsing a product page")
+  (let [res (-> is html-resource)
+        product {:name (clojure.string/trim
+                        (-> res
+                            (select [:body :h1#parent-fieldname-title :> text-node])
+                            first))
+                 :background  (clojure.string/replace (html-id-like res "Background") "\n" "")
+                 :functionality (html-id-like res "Functionality")
+                 :critical_level (Integer/parseInt (extract-critical-level res "CriticalLevel"))
+                 :business_owner (html-id-like res "BusinessOwner")
+                 :development (html-id-like res "Development")
+                 :ops_support (html-id-like res "OpsSupport")
+                 :users (html-id-like res "Users")
+                 :version (html-id-like res "version")
+                 :cfengine_classes (html-id-like res "CfengineClasses")
+                 :nagios_classes (html-id-like res "NagiosClasses")
+                 :installed_instances (-> (html-id-like res "InstalledInstances")
+                                          (clojure.string/split #"\n"))}]
+    (log/debug "Parsed product " product)
+    ))
 
 (defn- extract-name-and-url
   [a]
@@ -84,7 +87,7 @@
      - products a seq of hashes containing:
        - name - a string containing the product name
        - uri - a java.net.URI containing the url of the product page"
-  [^java.io.InputStream is]
+  [^java.io.InputStream is]  
   (let [res (html-resource is)]
     {:next-url (some-> res
                    (select [:div.listingBar :span.next :a])
@@ -110,6 +113,7 @@
     (if (nil? is)
         products
         (let [plp (-> is (parse-product-list-page))]
+          (log/debug "Parsed a product list page " plp)
           (recur (some-> plp
                          (:next-url)
                          (uri->stream))
@@ -118,6 +122,7 @@
 (defn find-product-information
   "Create a list with the product information for all products"
   [baseurl]
+  (log/info "Finding the products in the product page")
   (some-> baseurl
           (java.net.URL.)
           (.openStream)

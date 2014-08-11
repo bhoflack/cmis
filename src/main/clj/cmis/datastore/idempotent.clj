@@ -5,12 +5,12 @@
             [clj-time.coerce :refer [to-timestamp]]
             [cmis.util :refer [convert-uuid]]))
 
-(defprotocol AIdempotent
+(defprotocol AIdempotentDS
   (contains-entry? [this key] "Verify if a key already contains in the database")
   (put [this key] "Put an entry in the database"))
 
-(deftype Idempotent [ds]
-  AIdempotent
+(deftype IdempotentDS [ds]
+  AIdempotentDS
   (contains-entry? [_ key]
     (some-> ds
             (jdbc/query (sql/format {:select [:key]

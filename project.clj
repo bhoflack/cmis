@@ -1,6 +1,7 @@
 (defproject cmis "0.1.0-SNAPSHOT"
   :description "Capacity management information system"
   :url "http://github.com/bhoflack/cmis"
+  :maintainer {:email "brh@melexis.com"}
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.5.1"]
@@ -27,12 +28,14 @@
                  [org.clojure/tools.cli "0.3.1"]
                  [clojurewerkz/quartzite "1.2.0"]
                  [clj-ssh "0.5.7"]
-                 [org.apache.commons/commons-compress "1.8"]
-                 [org.slf4j/slf4j-simple "1.6.5"]]
+                 [org.apache.commons/commons-compress "1.8.1"]
+                 [org.slf4j/slf4j-log4j12 "1.6.5"]
+                 [com.mchange/c3p0 "0.9.2.1"]]
   :plugins [[lein-ring "0.8.5"]]
   :ring {:handler cmis.web/handler}
   :repositories {"conjars" "http://conjars.org/repo/"}
   :profiles {:dev {:dependencies [[org.apache.hadoop/hadoop-core "0.20.2-dev"]]}}
   :source-paths ["src/main/clj"]
   :java-source-paths ["src/main/java"]
+  :aot [cmis.core]
   :main cmis.core)
