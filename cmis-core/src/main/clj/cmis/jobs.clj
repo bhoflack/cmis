@@ -31,4 +31,3 @@
   (let [idempotent (from-context ctx :idempotent)
         event-service (from-context ctx :event-service)]
     (import-events idempotent event-service)))
-  

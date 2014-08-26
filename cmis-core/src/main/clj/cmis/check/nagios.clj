@@ -17,6 +17,9 @@
 (def NAGIOS_ARCHIVE_DIR "/var/log/nagios3/archives")
 (def nagios-service-pattern #"\[(\d+)\] [\w ]*SERVICE [\w]*: (.+);(.+);(\w+);(\w+);(\d*);(.*)")
 
+; The configuration where to get the nagios events from and the path to the private key.
+(def config (atom nil))
+
 (defn each-service-line
   "Perform actions on each service line of a file"
   [file-or-stream & fns]
@@ -94,8 +97,11 @@
   [idempotent]
   (log/info "Copying nagios files from nagios.elex.be")
   (let [agent (ssh-agent {})
-        session (session agent "nagios.elex.be" {:strict-host-key-checking :no})]
-    (add-identity agent {:private-key-path "/home/brh/.ssh/id_rsa"})
+        session (session agent (:hostname @config) {:strict-host-key-checking :no
+                                                    :username (:username @config)})]
+    (add-identity agent @config)
+
+;                  {:private-key-path "/home/brh/.ssh/id_rsa"})
     (with-connection session
       (some->> idempotent
                (list-files-in-dir session)

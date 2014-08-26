@@ -1,11 +1,12 @@
-(defproject cmis "0.1.0-SNAPSHOT"
+(defproject cmis-core "0.1.0-SNAPSHOT"
   :description "Capacity management information system"
   :url "http://github.com/bhoflack/cmis"
   :maintainer {:email "brh@melexis.com"}
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/java.jdbc "0.3.0-alpha1"]
+                 [org.clojure/java.jdbc "0.3.5"]
+                 [java-jdbc/dsl "0.1.0"]
                  [clj-time "0.5.0"]
                  [postgresql "9.1-901.jdbc4"]
                  [compojure "1.1.5"]
@@ -31,10 +32,10 @@
                  [org.apache.commons/commons-compress "1.8.1"]
                  [org.slf4j/slf4j-log4j12 "1.6.5"]
                  [com.mchange/c3p0 "0.9.2.1"]]
-  :plugins [[lein-ring "0.8.5"]]
-  :ring {:handler cmis.web/handler}
-  :repositories {"conjars" "http://conjars.org/repo/"}
-  :profiles {:dev {:dependencies [[org.apache.hadoop/hadoop-core "0.20.2-dev"]]}}
+  :repositories [["snapshots" {:url "http://nexus.colo.elex.be:8081/nexus/content/repositories/snapshots"
+                               :creds :gpg}]
+                 ["releases" {:url "http://nexus.colo.elex.be:8081/nexus/content/repositories/releases"
+                              :creds :gpg}]]
   :source-paths ["src/main/clj"]
   :java-source-paths ["src/main/java"]
   :aot [cmis.core]

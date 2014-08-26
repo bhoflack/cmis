@@ -2,7 +2,8 @@
   ^{:doc "A simple module to provide support for start scheme databases."}
   (:require [cmis.util :as util]
             [clojure.java.jdbc :as j]
-            [clojure.java.jdbc.sql :as s]
+            [java-jdbc.sql :as s]
+            [honeysql.core :as sql]
             [clj-time.core :as time]
             [clj-time.coerce :as coerce]
             [clojure.tools.logging :as log]))
@@ -33,8 +34,12 @@
   [ds table identifiermap]  
   (let [identifiermap* (assoc identifiermap :stopped_at nil)]
     (log/debug "Marking dimensions as stopped which match " identifiermap*)
-    (j/update! ds table {:stopped_at (coerce/to-timestamp (time/now))}
-               (s/where identifiermap*))))
+
+    (j/execute! ds
+                [(s/update table {:stopped_at (coerce/to-timestamp (time/now))}
+                           (s/where identifiermap*))])))
+;    (j/update! ds table 
+;               [(s/where identifiermap*)])))
 
 (defn- insert-to-db!
   "Insert a new dimension to the database
@@ -90,6 +95,7 @@
 
    Returns the uuid for the entry."
   ([ds table values keys identifiers cache]
+     (assert values)
      (log/info "Saving to slowly changing dimension " table " " values)
      (let [keymap             (assoc (select-keys values keys) :stopped_at nil)
            identifiermap      (select-keys values identifiers)
@@ -108,6 +114,7 @@
                (put-uuid! cache table keymap uuid)
                uuid))))))
   ([ds table values keys identifiers]
+     (assert values)
      (slowly-changing-dimension ds table values keys identifiers default-cache)))
 
 (defn insert

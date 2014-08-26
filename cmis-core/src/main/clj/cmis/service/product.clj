@@ -13,6 +13,8 @@
 (deftype ProductService [ds]
   AProductService
   (put [_ product]
+    (assert product)
+    (log/info "Putting product " product)
     (let [product* (dissoc product :installed_instances)
           appid (star/slowly-changing-dimension ds
                                                 :dim_ci

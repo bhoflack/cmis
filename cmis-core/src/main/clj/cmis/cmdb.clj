@@ -123,10 +123,12 @@
   "Create a list with the product information for all products"
   [baseurl]
   (log/info "Finding the products in the product page")
-  (some-> baseurl
-          (java.net.URL.)
-          (.openStream)
-          (list-products)
-          (->> (map :uri))
-          (->> (map uri->stream))
-          (->> (map parse-product-page))))
+  (let [products (some-> baseurl
+                         (java.net.URL.)
+                         (.openStream)
+                         (list-products)
+                         (->> (map :uri))
+                         (->> (map uri->stream))
+                         (->> (map parse-product-page)))]
+    (log/debug "Found the following products " products)
+    products))
