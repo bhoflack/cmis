@@ -118,6 +118,8 @@
     (.mkdirs (file dir "etc" name))
     (copy (file (:root project) "pkg" "deb" (str name ".config"))
           (file dir "etc" name (str name ".config")))
+    (copy (file (:root project) "pkg" "deb" "log4j.properties")
+          (file dir "etc" name "log4j.properties"))
 
     ; defaults file
     (.mkdirs (file dir "etc" "default"))
