@@ -11,7 +11,8 @@
             cmis.jobs
             cmis.service.event
             cmis.service.idempotent
-	    cmis.service.product)
+	    cmis.service.product
+            [clojure.tools.logging :as log])
   (:import [cmis.datastore.event EventDatastore]
            [cmis.datastore.ciapplication CiApplicationDatastore]
            [cmis.datastore.idempotent IdempotentDS]
@@ -24,6 +25,7 @@
 
 (defn schedule-jobs
   [ds]
+  (log/info "Scheduling the quartz jobs")
   (let [ds1 {:datasource ds}        
         ps (ProductService. ds1)
         eds (EventDatastore. ds1)
@@ -41,7 +43,8 @@
                       (t/with-identity (t/key "cmdb-import-trigger"))
                       (t/start-now)
                       (t/with-schedule (schedule
-                                        (cron-schedule "0 0 1 * * ?"))))                      
+                                        (cron-schedule "0 0 1 * * * ?")))
+                      )
         nagios-job (j/build
                     (j/of-type NagiosImport)
                     (j/with-identity (j/key "nagios-import"))
@@ -52,28 +55,10 @@
                         (t/with-identity (t/key "nagios-import-trigger"))
                         (t/start-now)
                         (t/with-schedule (schedule
-                                          (cron-schedule "0 0 1 * * ?"))))]       
+                                          (cron-schedule "0 0 1 * * * ?")))
+                        )]       
     (qs/initialize)
     (qs/start)        
     (qs/schedule cmdb-job cmdb-trigger)
-    (qs/schedule nagios-job nagios-trigger)))
-  
-
-(defn -main
-  ([] (-main "cmis.config"))
-  ([config-file]
-     (let [config (-> config-file
-                      (slurp)
-                      (clojure.edn/read-string))
-           ds-spec (:datasource config)
-           ds (doto (ComboPooledDataSource.)
-                (.setDriverClass (:classname ds-spec)) 
-                (.setJdbcUrl (str "jdbc:" (:subprotocol ds-spec) ":" (:subname ds-spec)))
-                (.setUser (:user ds-spec))
-                (.setPassword (:password ds-spec))
-                ;; expire excess connections after 30 minutes of inactivity:
-                (.setMaxIdleTimeExcessConnections (* 30 60))
-                ;; expire connections after 3 hours of inactivity:
-                (.setMaxIdleTime (* 3 60 60)))]
-       (schedule ds))))
-        
+    (qs/schedule nagios-job nagios-trigger))
+  )

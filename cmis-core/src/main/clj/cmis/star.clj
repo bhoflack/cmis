@@ -35,11 +35,9 @@
   (let [identifiermap* (assoc identifiermap :stopped_at nil)]
     (log/debug "Marking dimensions as stopped which match " identifiermap*)
 
-    (j/execute! ds
-                [(s/update table {:stopped_at (coerce/to-timestamp (time/now))}
-                           (s/where identifiermap*))])))
-;    (j/update! ds table 
-;               [(s/where identifiermap*)])))
+    (j/update! ds table
+               {:stopped_at (coerce/to-timestamp (time/now))}
+               (s/where identifiermap*))))
 
 (defn- insert-to-db!
   "Insert a new dimension to the database

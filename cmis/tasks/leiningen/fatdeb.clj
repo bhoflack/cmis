@@ -76,6 +76,7 @@
     (write (file dir "DEBIAN" "control") (control project))
     (write (file dir "DEBIAN" "conffiles")
            (join "\n" [(str "/etc/" name "/" name ".config")
+                       (str "/etc/" name "/log4j.properties")
                        (str "/etc/default/" name)
                        (str "/etc/init.d/" name)]))
 

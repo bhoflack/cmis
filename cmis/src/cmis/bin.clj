@@ -22,7 +22,16 @@
        (reset! cmis.check.nagios/config {:hostname hostname
                                          :private-key-path private-key-path
                                          :username username})
-       (reset! cmis-dashboard.handler/ds datasource)
-       
-       (.start (Thread. (fn [] (cmis.core/schedule-jobs datasource))))      
-       (serve cmis-dashboard.handler/app))))
+
+       (let [ds (doto (ComboPooledDataSource.)
+                  (.setDriverClass (:classname datasource))
+                  (.setJdbcUrl (str "jdbc:" (:subprotocol datasource) ":" (:subname datasource)))
+                  (.setUser (:user datasource))
+                  (.setPassword (:password datasource))
+                  ;; expire excess connections after 30 minutes of inactivity:
+                  (.setMaxIdleTimeExcessConnections (* 30 60))
+                  ;; expire connections after 3 hours of inactivity:
+                  (.setMaxIdleTime (* 3 60 60)))]
+         (reset! cmis-dashboard.handler/ds datasource)
+         (cmis.core/schedule-jobs ds)
+         (serve cmis-dashboard.handler/app {:open-browser? false})))))

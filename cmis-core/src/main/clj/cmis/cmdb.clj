@@ -67,6 +67,7 @@
                  :installed_instances (-> (html-id-like res "InstalledInstances")
                                           (clojure.string/split #"\n"))}]
     (log/debug "Parsed product " product)
+    product
     ))
 
 (defn- extract-name-and-url
@@ -130,5 +131,4 @@
                          (->> (map :uri))
                          (->> (map uri->stream))
                          (->> (map parse-product-page)))]
-    (log/debug "Found the following products " products)
     products))

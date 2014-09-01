@@ -103,12 +103,12 @@
 
 ;                  {:private-key-path "/home/brh/.ssh/id_rsa"})
     (with-connection session
-      (some->> idempotent
-               (list-files-in-dir session)
-               (create-tar session)
-               (copy-tarfile session "/tmp")
-               (remove-tar-file session)
-               (java.io.FileInputStream.))
+      (->> idempotent
+           (list-files-in-dir session)
+           (create-tar session)
+           (copy-tarfile session "/tmp")
+           (remove-tar-file session)
+           (java.io.FileInputStream.))
       )))
 
 (defn import-events
