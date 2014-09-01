@@ -1,4 +1,4 @@
-(defproject cmis-dashboard "0.1.0-SNAPSHOT"
+(defproject cmis-dashboard "1.1.0"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :dependencies [[org.clojure/clojure "1.6.0"]
@@ -9,8 +9,10 @@
                  [postgresql "9.1-901.jdbc4"]
                  [org.clojure/data.zip "0.1.1"]
                  ]
-  :repositories [["snapshots" "http://nexus.colo.elex.be:8081/nexus/content/repositories/snapshots"]
-                 ["releases" "http://nexus.colo.elex.be:8081/nexus/content/repositories/releases"]]
+  :repositories [["snapshots" {:url "http://nexus.colo.elex.be:8081/nexus/content/repositories/snapshots"
+                               :sign-releases false}]
+                 ["releases" {:url "http://nexus.colo.elex.be:8081/nexus/content/repositories/releases"
+                              :sign-releases false}]]
 
   :plugins [[lein-ring "0.8.11"]]
   :ring {:handler cmis-dashboard.handler/app}

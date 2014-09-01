@@ -1,4 +1,4 @@
-(defproject cmis-core "0.1.0-SNAPSHOT"
+(defproject cmis-core "1.1.0"
   :description "Capacity management information system"
   :url "http://github.com/bhoflack/cmis"
   :maintainer {:email "brh@melexis.com"}
@@ -33,9 +33,9 @@
                  [org.slf4j/slf4j-log4j12 "1.6.5"]
                  [com.mchange/c3p0 "0.9.2.1"]]
   :repositories [["snapshots" {:url "http://nexus.colo.elex.be:8081/nexus/content/repositories/snapshots"
-                               :creds :gpg}]
+                               :sign-releases false}]
                  ["releases" {:url "http://nexus.colo.elex.be:8081/nexus/content/repositories/releases"
-                              :creds :gpg}]]
+                              :sign-releases false}]]
   :source-paths ["src/main/clj"]
   :java-source-paths ["src/main/java"]
   :aot [cmis.core]
