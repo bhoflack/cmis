@@ -4,7 +4,7 @@
             [clojurewerkz.quartzite.scheduler :as qs]
             [clojurewerkz.quartzite.triggers :as t]
             [clojurewerkz.quartzite.jobs :as j]
-            [clojurewerkz.quartzite.schedule.daily-interval :refer [schedule starting-daily-at with-interval-in-days time-of-day]]
+            [clojurewerkz.quartzite.schedule.cron :refer [schedule cron-schedule]]
             cmis.datastore.event
             cmis.datastore.ciapplication
             cmis.datastore.idempotent
@@ -24,8 +24,7 @@
 
 (defn schedule-jobs
   [ds]
-  (let [ds1 {:datasource ds}
-        
+  (let [ds1 {:datasource ds}        
         ps (ProductService. ds1)
         eds (EventDatastore. ds1)
         cids (CiApplicationDatastore. ds1)
@@ -40,10 +39,9 @@
         
         cmdb-trigger (t/build
                       (t/with-identity (t/key "cmdb-import-trigger"))
+                      (t/start-now)
                       (t/with-schedule (schedule
-                                        (with-interval-in-days 1)
-                                        (starting-daily-at (time-of-day 2 00 00))))
-                      )
+                                        (cron-schedule "0 0 1 * * ?"))))                      
         nagios-job (j/build
                     (j/of-type NagiosImport)
                     (j/with-identity (j/key "nagios-import"))
@@ -54,11 +52,7 @@
                         (t/with-identity (t/key "nagios-import-trigger"))
                         (t/start-now)
                         (t/with-schedule (schedule
-                                          (with-interval-in-days 1)
-                                          (starting-daily-at (time-of-day 3 00 00))))
-                        )]
-
-       
+                                          (cron-schedule "0 0 1 * * ?"))))]       
     (qs/initialize)
     (qs/start)        
     (qs/schedule cmdb-job cmdb-trigger)
