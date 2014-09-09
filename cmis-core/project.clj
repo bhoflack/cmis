@@ -1,4 +1,4 @@
-(defproject cmis-core "1.1.0"
+(defproject cmis-core "1.2.0-SNAPSHOT"
   :description "Capacity management information system"
   :url "http://github.com/bhoflack/cmis"
   :maintainer {:email "brh@melexis.com"}

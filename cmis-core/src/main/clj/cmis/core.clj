@@ -43,8 +43,17 @@
                       (t/with-identity (t/key "cmdb-import-trigger"))
                       (t/start-now)
                       (t/with-schedule (schedule
-                                        (cron-schedule "0 0 1 * * * ?")))
+                                        (cron-schedule "0 0 1 * * ?")))
                       )
+
+        startup-cmdb (t/build
+                      (t/with-identity (t/key "startup-cmdb"))
+                      (t/start-now))
+
+        startup-nagios (t/build
+                      (t/with-identity (t/key "startup-nagios"))
+                      (t/start-now))
+        
         nagios-job (j/build
                     (j/of-type NagiosImport)
                     (j/with-identity (j/key "nagios-import"))
@@ -55,10 +64,12 @@
                         (t/with-identity (t/key "nagios-import-trigger"))
                         (t/start-now)
                         (t/with-schedule (schedule
-                                          (cron-schedule "0 0 1 * * * ?")))
+                                          (cron-schedule "0 0 1 * * ?")))
                         )]       
     (qs/initialize)
-    (qs/start)        
+    (qs/start)
+;    (qs/schedule cmdb-job startup-cmdb)
+;    (qs/schedule nagios-job startup-nagios)
     (qs/schedule cmdb-job cmdb-trigger)
     (qs/schedule nagios-job nagios-trigger))
   )

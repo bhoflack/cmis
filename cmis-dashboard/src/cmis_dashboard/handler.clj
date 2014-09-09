@@ -9,13 +9,20 @@
 (def ds (atom nil))
 
 (defroutes app-routes
-  (context "/cis/" []
+  (context "/cis" []
            (defroutes cis-routes
              (GET "/" []
                   (-> @ds
-                      (cmis/get-all-cis)
-                      (cmis/transform)
-                      (json/write-str)))))
+                      (cmis/find-all-products)
+                      (json/write-str)))
+             (GET "/product" {{name :name} :params}
+                  (let [product (some-> @ds
+                                        (cmis/find-ci-with-name name)
+                                        (cmis/transform-measurements))]
+                    (if (nil? product)
+                      {:status 404 :headers {}}
+                      (json/write-str product))))))
+
   (route/resources "")
   (route/resources "/")
   (route/not-found "Not Found"))
