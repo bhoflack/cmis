@@ -43,7 +43,7 @@
                       (t/with-identity (t/key "cmdb-import-trigger"))
                       (t/start-now)
                       (t/with-schedule (schedule
-                                        (cron-schedule "0 0 1 * * * ?")))
+                                        (cron-schedule "0 0 1 * * ?")))
                       )
         nagios-job (j/build
                     (j/of-type NagiosImport)
@@ -55,7 +55,7 @@
                         (t/with-identity (t/key "nagios-import-trigger"))
                         (t/start-now)
                         (t/with-schedule (schedule
-                                          (cron-schedule "0 0 1 * * * ?")))
+                                          (cron-schedule "0 0 1 * * ?")))
                         )]       
     (qs/initialize)
     (qs/start)        
