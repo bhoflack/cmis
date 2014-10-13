@@ -10,8 +10,8 @@
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link rel="stylesheet" href="css/cbf3f5d2.cbf3f5d2.cmis.min.css"/>
-  <script src="bower_components/html5-boilerplate/js/vendor/42306a27.42306a27.modernizr-2.6.2.min.js"></script>
+  <link rel="stylesheet" href="css/b2ca789d.cmis.min.css"/>
+  <script src="bower_components/html5-boilerplate/js/vendor/42306a27.modernizr-2.6.2.min.js"></script>
 </head>
 <body ng-controller="CmisCtrl">
   <!--[if lt IE 7]>
@@ -55,7 +55,11 @@
                 </li>
               </ul>
           </div>
-          <div class="col-md-10">
+          <div class="col-md-10" ng-hide="hasProductSelected">
+            Pick a product on the left.
+          </div>
+
+          <div class="ng-hide col-md-10" ng-show="hasProductSelected">
               <div class="ci">
                   <h3>{{ci.name}}</h3>
 		  <p>{{ci.description}}</p>
@@ -88,7 +92,7 @@
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/x.x.x/angular.min.js"></script>
   -->
 
-  <script src="js/cd57d023.cmis.min.js"></script>
+  <script src="js/e127168e.cmis.min.js"></script>
 
 </body>
 </html>
