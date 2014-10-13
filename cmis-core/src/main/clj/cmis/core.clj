@@ -71,5 +71,4 @@
 ;    (qs/schedule cmdb-job startup-cmdb)
 ;    (qs/schedule nagios-job startup-nagios)
     (qs/schedule cmdb-job cmdb-trigger)
-    (qs/schedule nagios-job nagios-trigger))
-  )
+    (qs/schedule nagios-job nagios-trigger)))

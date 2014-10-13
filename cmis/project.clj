@@ -5,8 +5,8 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :maintainer {:email "brh@melexis.com"}
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [cmis-core "1.1.1-SNAPSHOT"]
-                 [cmis-dashboard "1.1.1-SNAPSHOT"]
+                 [cmis-core "1.2.0-SNAPSHOT"]
+                 [cmis-dashboard "1.2.0-SNAPSHOT"]
                  [ring-server "0.3.1"]
                  [com.mchange/c3p0 "0.9.2.1"]]
   :repositories [["snapshots" {:url "http://nexus.colo.elex.be:8081/nexus/content/repositories/snapshots"
@@ -16,5 +16,4 @@
   :plugins [[lein-ring "0.8.11"]]
   :ring {:handler cmis-dashboard.handler/app}
   :aot [cmis.bin]
-  :main cmis.bin
-  )
+  :main cmis.bin)
