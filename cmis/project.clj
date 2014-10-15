@@ -1,4 +1,4 @@
-(defproject cmis "1.1.1"
+(defproject cmis "1.1.2"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
