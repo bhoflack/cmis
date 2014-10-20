@@ -7,4 +7,7 @@ if [ -x "/etc/init.d/cmis" ]; then
   fi
 fi
 
+chown -R cmis /var/log/cmis 
+chmod -R 755 /var/log/cmis
+
 invoke-rc.d cmis start

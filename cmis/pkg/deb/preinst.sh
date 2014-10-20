@@ -9,4 +9,6 @@ getent passwd "$USERNAME" >/dev/null || \
 ls /home/cmis || mkdir /home/cmis
 chmod 700 /home/cmis
 chown cmis /home/cmis
+
+
 exit 0
