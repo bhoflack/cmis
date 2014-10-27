@@ -1,10 +1,10 @@
-(defproject cmis-core "1.1.3"
+(defproject cmis-core "1.2.0-SNAPSHOT"
   :description "Capacity management information system"
   :url "http://github.com/bhoflack/cmis"
   :maintainer {:email "brh@melexis.com"}
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.5.1"]
+  :dependencies [[org.clojure/clojure "1.5.1"]                 
                  [org.clojure/java.jdbc "0.3.5"]
                  [java-jdbc/dsl "0.1.0"]
                  [clj-time "0.5.0"]

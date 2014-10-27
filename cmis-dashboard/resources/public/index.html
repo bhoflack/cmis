@@ -10,7 +10,7 @@
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link rel="stylesheet" href="css/b7b4efb0.cmis.min.css"/>
+  <link rel="stylesheet" href="css/b2ca789d.cmis.min.css"/>
   <script src="bower_components/html5-boilerplate/js/vendor/42306a27.modernizr-2.6.2.min.js"></script>
 </head>
 <body ng-controller="CmisCtrl">
@@ -18,37 +18,72 @@
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
   <![endif]-->
 
-  <div class="container-fluid">
-      <div class="row-fluid">
-          <div class="span2">
-              <!-- Sidebar content -->
-              Search: <input ng-model="query">
-          </div>
-          <div class="span10">
-              <ul class="cis">
-                  <li ng-repeat="ci in cis | filter:query">
-		    <h3>{{ci.name}}</h3>
-		    <p>{{ci.description}}</p>
+  <header class="navbar navbar-static-top bs-docs-nav" id="top" role="banner">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a href="#" class="navbar-brand">Capacity Management Information System</a>
+      </div>
+      <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+          <ul class="nav navbar-nav">
+            <li>
+              <a href="#">CI report</a>
+            </li>
+          </ul>
 
-		    <ul class="instances">
-		      <li ng-repeat="instance in ci.instances">{{instance}}</li>
-		    </ul>
-		    
-		    <ul class="measurements">
-		      <li ng-repeat="measurement in ci.measurements">
-			<h4>{{measurement.name}}</h4>
+          <form class="navbar-form navbar-right" role="search">
+            <div class="form-group">
+              <input type="text" class="form-control" placeholder="Search" ng-model="query">
+            </div>
+          </form>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container-fluid">
+      <div class="row">
+          <div class="col-md-2 sidebar">
+              <!-- Sidebar content -->
+              <ul class="products">
+                <li ng-repeat="p in products | filter:query">
+                  <a href="#{{p.name}}">{{p.name}}</a>
+                </li>
+              </ul>
+          </div>
+          <div class="col-md-10" ng-hide="hasProductSelected">
+            Pick a product on the left.
+          </div>
+
+          <div class="ng-hide col-md-10" ng-show="hasProductSelected">
+              <div class="ci">
+                  <h3>{{ci.name}}</h3>
+		  <p>{{ci.description}}</p>
+
+                  <h4>Instances</h4>
+		  <ul class="instances">
+		    <li ng-repeat="instance in ci.instances">{{instance}}</li>
+		  </ul>
+		  
+                  <h4>Measurements</h4>
+		  <ul class="measurements">
+		    <li ng-repeat="measurement in ci.measurements" class="measurement">
+		      <h5>{{measurement.name}}</h5>
 			
-			<ul class="charts">
-			  <li ng-repeat="chartData in measurement.charts" style="list-style-type: none; padding:0; margin:0;">
-			    <div>
-			      <cjs-line class="chart" options="options" dataset="chartData" height="400" width="700"></cjs-line>
-			    </div>
-			  </li>
-			</ul>
-		      </li>
-		    </ul>
-		  </li>
-              </ul>	      
+                      <ul class="charts">
+                        <li ng-repeat="chartData in measurement.charts" class="chart">
+                          <div>
+                            <cjs-line class="chart" options="options" dataset="chartData" height="400" width="700"></cjs-line>
+                          </div>
+                        </li>
+                      </ul> <!-- charts -->
+                    </li>
+		  </ul> <!-- measurements -->
+              </div> <!-- ci --->
           </div>
       </div>
   </div>
@@ -57,7 +92,7 @@
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/x.x.x/angular.min.js"></script>
   -->
 
-  <script src="js/d2b81b7f.cmis.min.js"></script>
+  <script src="js/e127168e.cmis.min.js"></script>
 
 </body>
 </html>
