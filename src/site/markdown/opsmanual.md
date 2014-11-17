@@ -17,7 +17,13 @@ Install the cmis package
 ### Import the cmdb certificate
 As the cmdb is behind SSL,  we need to import the certificate to our keystore.
 
-First verify if the certificate is part of the keystore:
+First verify the location of the cacerts file:
+
+```
+ls -la /usr/lib/jvm/<<jdk version>>/jre/lib/security/cacerts
+```
+
+Then verify if the certificate is part of the keystore:
 
 ```
 keytool -keystore /etc/ssl/certs/java/cacerts -list | grep cmdb
@@ -34,7 +40,7 @@ openssl s_client -showcerts -connect cmdb.elex.be:443 </dev/null 2>/dev/null|ope
 Now add it to the keystore:
 
 ```
-keytool -keystore /etc/ssl/certs/java/cacerts -importcert -alias cmdb.elex.be -file /tmp/cmdb.elex.be.pem
+keytool -keystore /etc/ssl/certs/java/cacerts -importcert -alias cmdb.elex.be -file cmdb.elex.be.pem
 ```
 
 ### The configuration file

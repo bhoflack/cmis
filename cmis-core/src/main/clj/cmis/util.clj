@@ -59,3 +59,9 @@
   (-> uri
       (.toURL)
       (.openStream)))
+
+(defmethod uri->stream "https"
+  [^java.net.URI uri]
+  (-> uri
+      (.toURL)
+      (.openStream)))
