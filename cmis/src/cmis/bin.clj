@@ -9,7 +9,7 @@
 (defn -main
   ([] (-main "cmis.config"))
   ([config-file]
-     (let [{:keys [datasource hostname private-key-path username]}
+     (let [{:keys [datasource hostname private-key-path username cmdb-product-url]}
            (-> config-file
                (slurp)
                (clojure.edn/read-string))]
@@ -33,5 +33,5 @@
                   ;; expire connections after 3 hours of inactivity:
                   (.setMaxIdleTime (* 3 60 60)))]
          (reset! cmis-dashboard.handler/ds datasource)
-         (cmis.core/schedule-jobs ds)
+         (cmis.core/schedule-jobs ds cmdb-product-url)
          (serve cmis-dashboard.handler/app {:open-browser? false})))))

@@ -17,9 +17,10 @@
   ^{:doc "A job for importing the cmdb data to the database"}
   CmdbImport [ctx]
   (log/info "Starting job CmdbImport")
-  (let [ps (from-context ctx :productservice)]
+  (let [ps (from-context ctx :productservice)
+        cmdburl (from-context ctx :cmdb-product-url)]
     (assert (not (nil? ps)))
-    (some-> "http://cmdb.elex.be/products/"
+    (some-> cmdburl
             (cmdb/find-product-information)
             (->> (map (partial product/put ps)))
             (doall))))

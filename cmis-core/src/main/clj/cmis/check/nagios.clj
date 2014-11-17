@@ -101,7 +101,6 @@
                                                     :username (:username @config)})]
     (add-identity agent @config)
 
-;                  {:private-key-path "/home/brh/.ssh/id_rsa"})
     (with-connection session
       (->> idempotent
            (list-files-in-dir session)

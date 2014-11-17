@@ -31,7 +31,9 @@
                  [clj-ssh "0.5.7"]
                  [org.apache.commons/commons-compress "1.8.1"]
                  [org.slf4j/slf4j-log4j12 "1.6.5"]
-                 [com.mchange/c3p0 "0.9.2.1"]]
+                 [com.mchange/c3p0 "0.9.2.1"]
+                 [feedparser-clj "0.2"]
+                 ]
   :repositories [["snapshots" {:url "http://nexus.colo.elex.be:8081/nexus/content/repositories/snapshots"
                                :sign-releases false}]
                  ["releases" {:url "http://nexus.colo.elex.be:8081/nexus/content/repositories/releases"

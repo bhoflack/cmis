@@ -24,7 +24,7 @@
   (:gen-class :name cmis.core))
 
 (defn schedule-jobs
-  [ds]
+  [ds cmdb-product-url]
   (log/info "Scheduling the quartz jobs")
   (let [ds1 {:datasource ds}        
         ps (ProductService. ds1)
@@ -37,14 +37,14 @@
         cmdb-job (j/build
                   (j/of-type CmdbImport)
                   (j/with-identity (j/key "cmdb-import"))
-                  (j/using-job-data {:productservice ps}))
+                  (j/using-job-data {:productservice ps
+                                     :cmdb-product-url cmdb-product-url}))
         
         cmdb-trigger (t/build
                       (t/with-identity (t/key "cmdb-import-trigger"))
                       (t/start-now)
                       (t/with-schedule (schedule
-                                        (cron-schedule "0 0 1 * * ?")))
-                      )
+                                        (cron-schedule "0 0 1 * * ?"))))
 
         startup-cmdb (t/build
                       (t/with-identity (t/key "startup-cmdb"))
@@ -64,11 +64,10 @@
                         (t/with-identity (t/key "nagios-import-trigger"))
                         (t/start-now)
                         (t/with-schedule (schedule
-                                          (cron-schedule "0 0 1 * * ?")))
-                        )]       
+                                          (cron-schedule "0 0 1 * * ?"))))]       
     (qs/initialize)
     (qs/start)
-;    (qs/schedule cmdb-job startup-cmdb)
-;    (qs/schedule nagios-job startup-nagios)
+    (qs/schedule cmdb-job startup-cmdb)
+    (qs/schedule nagios-job startup-nagios)
     (qs/schedule cmdb-job cmdb-trigger)
     (qs/schedule nagios-job nagios-trigger)))
