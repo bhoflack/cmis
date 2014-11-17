@@ -1,4 +1,4 @@
-(defproject cmis-dashboard "1.2.0-SNAPSHOT"
+(defproject cmis-dashboard "1.2.0"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :dependencies [[org.clojure/clojure "1.6.0"]
