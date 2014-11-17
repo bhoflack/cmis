@@ -1,8 +1,7 @@
 (ns cmis.util.compress
   ^{:doc "Utilities for (de-)compressing files"}
   (:import [org.apache.commons.compress.archivers.tar TarArchiveInputStream]
-           [org.apache.commons.compress.compressors.gzip GzipCompressorInputStream])
-  )
+           [org.apache.commons.compress.compressors.gzip GzipCompressorInputStream]))
 
 (defn- list-entries
   [tais]

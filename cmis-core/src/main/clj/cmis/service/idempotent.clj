@@ -1,6 +1,7 @@
 (ns cmis.service.idempotent
   "Idempotent service that builds on idempotentDS to store the filename."
-  (:require cmis.datastore.idempotent)
+  (:require [clojure.tools.logging :as log]
+            cmis.datastore.idempotent)
   (:import [cmis.datastore.idempotent AIdempotentDS]
            [java.io File]))
 
@@ -10,14 +11,14 @@
 
 (deftype Idempotent [^AIdempotentDS ds]
   AIdempotent
-  (contains-entry? [_ key]
-    (-> key
-        (File.)
-        (.getName)
-        (->> (.contains-entry? ds))))
-
-  (put [_ key]
-    (-> key
-        (File.)
-        (.getName)
-        (->> (.put ds)))))
+  (contains-entry? [_ {:keys [path sha]}]
+    (let [filename (-> path (File.) (.getName))
+          entry (str filename "/" sha)]
+      (log/info (str "Checking if entry " entry " exists"))
+      (.contains-entry? ds entry)))
+  
+  (put [_ {:keys [path sha]}]
+    (let [filename (-> path (File.) (.getName))
+          entry (str filename "/" sha)]
+      (log/info (str "Putting entry " entry))
+      (.put ds entry))))

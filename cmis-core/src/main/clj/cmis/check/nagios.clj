@@ -57,23 +57,26 @@
   (perform [_ ds] (perform-check ds root)))
 
 (defn- list-files-in-dir
-  [session idempotent]
+  [session idempotent]  
   (-> session
-      (ssh {:in (str "ls " NAGIOS_ARCHIVE_DIR)})
+      (ssh {:in (str "openssl sha1 " NAGIOS_ARCHIVE_DIR "/nagios-*")})
       (:out)
-      (->> (re-seq #"nagios-[\w\-\.]+"))
-      (->> (filter #(not (.endsWith % ".gz"))))
+      (->> (re-seq #"SHA1\((.*)\)= (\w{32})"))
+      (->> (map (fn [[_ path sha]] {:path path :sha sha})))
+      (->> (filter (fn [{:keys [path]}] (not (.endsWith path ".gz")))))
       (->> (filter #(not (idempotent/contains-entry? idempotent %))))
-      (->> (map #(.getPath (java.io.File. NAGIOS_ARCHIVE_DIR %))))))
-
+      (->> (map :path))))
+                
 (defn- create-tar
   [session files]
-  (log/info "Creating tar for nagios logs")
+  (log/info "Creating tar for nagios logs " files)
   (let [tarfile (-> (java.io.File/createTempFile "nagios" ".tgz") (.getPath))
-        filenames (clojure.string/join " " files)]
-    (-> session
-        (ssh {:in (format "tar -pczvf %s %s" tarfile filenames)}))
-    tarfile))
+        filenames (clojure.string/join " " files)
+        cmd (format "tar -pczvf %s %s" tarfile filenames)]
+    (log/info "Sending command " cmd)
+    (let [response (-> session (ssh {:in cmd}))]
+      (log/info "Got response " response)
+      tarfile)))
   
 (defn- copy-tarfile
   [session dest tarfile]
@@ -107,8 +110,7 @@
            (create-tar session)
            (copy-tarfile session "/tmp")
            (remove-tar-file session)
-           (java.io.FileInputStream.))
-      )))
+           (java.io.FileInputStream.)))))
 
 (defn import-events
   "Import the nagios events from the nagios server"
@@ -118,11 +120,23 @@
           (copy-nagios-files)
           (with-decompressed-tgz
             (fn [f s]
-              (let [filename (-> f (java.io.File.) (.getName))]
-                (log/info "Start processing file " f)
-                (try 
-                  (perform-check event-service s)
-                  (idempotent/put idempotent filename)
-                  (catch Exception e
-                    (log/warn "Exception while processing file " f ": " e))))))
+              (let [filename (-> f (java.io.File.) (.getName))
+                    tempfile (java.io.File/createTempFile "nagios" ".log")]
+                (log/info "Copying file " f " to temporary file " tempfile)
+
+                ; Save the file to a temporary file so that we can have multiple streams.
+                (clojure.java.io/copy s tempfile)
+
+                (let [checkis (java.io.FileInputStream. tempfile)
+                      shais   (java.io.FileInputStream. tempfile)
+                      sha     (org.apache.commons.codec.digest.DigestUtils/sha1Hex shais)]
+                  (log/info "Start processing file " f " (" sha ")")
+                  (try 
+                    (perform-check event-service checkis)
+                    (idempotent/put idempotent {:path filename :sha sha})
+                    (catch Exception e
+                      (log/warn "Exception while processing file " f ": " e))
+                    (finally
+                     (.delete tempfile))
+                    )))))
            (doall)))
