@@ -1,0 +1,36 @@
+{"name": "Electronic Wafermapping",
+ "description": "Electronic wafermapping blalba",
+ "critical_level": 5,
+ "instances": ["ewaf.colo.elex.be"],	 
+ "measurements":  [
+     {"name": "cpu idle",
+      "labels": ["January", "February", "March", "April", "May", "June", "July"],
+      "data": {"apache.colo.elex.be": [65, 59, 23, 81, 56, 55, 40],
+	       "apache2.colo.elex.be": [28, 48, 5, 19, 96, 27, 100]
+	      }
+     },
+     {"name": "cpu io wait",
+      "labels": ["January", "February", "March", "April", "May", "June", "July"],
+      "data": {"apache.colo.elex.be": [65, 59, 23, 81, 56, 55, 40],
+	       "apache2.colo.elex.be": [28, 48, 5, 19, 96, 27, 100]
+	      }
+     },
+     {"name": "cpu system",
+      "labels": ["January", "February", "March", "April", "May", "June", "July"],
+      "data": {"apache.colo.elex.be": [65, 59, 23, 81, 56, 55, 40],
+	       "apache2.colo.elex.be": [28, 48, 5, 19, 96, 27, 100]
+	      }
+     },
+     {"name": "cpu user",
+      "labels": ["January", "February", "March", "April", "May", "June", "July"],
+      "data": {"apache.colo.elex.be": [65, 59, 23, 81, 56, 55, 40],
+	       "apache2.colo.elex.be": [28, 48, 5, 19, 96, 27, 100]
+	      }
+     },
+     {"name": "memory",
+      "labels": ["January", "February", "March", "April", "May", "June", "July"],
+      "data": {"apache.colo.elex.be": [65, 59, 23, 81, 56, 55, 40],
+	       "apache2.colo.elex.be": [28, 48, 5, 19, 96, 27, 100]
+	      }
+     }]
+}
