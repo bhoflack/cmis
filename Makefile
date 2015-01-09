@@ -5,7 +5,7 @@ deb: cmis
 cmis-core:
 	cd cmis-core; lein install
 
-cmis-dashboard:
+cmis-dashboard: cmis-statistics
 	cd cmis-dashboard; lein install
 
 cmis-statistics:
