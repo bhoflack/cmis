@@ -1,4 +1,4 @@
-(defproject cmis-dashboard "1.2.0"
+(defproject cmis-dashboard "1.3.0-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :dependencies [[org.clojure/clojure "1.6.0"]
@@ -8,7 +8,8 @@
                  [honeysql "0.4.3"]
                  [postgresql "9.1-901.jdbc4"]
                  [org.clojure/data.zip "0.1.1"]
-                 ]
+                 [cmis-statistics "1.3.0-SNAPSHOT"]
+                 [hiccup "1.0.5"]]
   :repositories [["snapshots" {:url "http://nexus.colo.elex.be:8081/nexus/content/repositories/snapshots"
                                :sign-releases false}]
                  ["releases" {:url "http://nexus.colo.elex.be:8081/nexus/content/repositories/releases"

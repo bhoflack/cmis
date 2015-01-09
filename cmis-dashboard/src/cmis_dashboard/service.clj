@@ -94,3 +94,51 @@
 
       (sql/format)
       (->> (j/query ds))))
+
+(defn find-all-measurements
+  "Find all measurements for the given ci and check name"
+  [ds ci-name event-name hostname]
+  (-> (select [:host_ci.name "hostname"]
+              :dt.timestamp
+              :fm.value)
+      (from [:fact_measurement :fm])
+      (join [:dim_time :dt] [:= :dt.id :fm.time_id]
+            [:dim_event :de] [:= :de.id :fm.event_id]
+            [:fact_host_application :fha] [:= :fm.id :fha.measurement_id]
+            [:dim_ci :application_ci] [:= :application_ci.id :fha.application_id]
+            [:dim_ci :host_ci] [:= :host_ci.id :fha.ci_id])
+      (where [:and 
+              [:= :application_ci.name ci-name]
+              [:= :de.name event-name]
+              [:= :host_ci.name hostname]])
+      (sql/format)
+     (->> (j/query ds))))
+
+(defn events-for-ci
+  "Find all events that are applicable for a ci"
+  [ds ci-name]
+  (-> (select [:de.name :event-name])
+      (modifiers :distinct)
+      (from [:fact_measurement :fm])
+      (join [:dim_event :de] [:= :de.id :fm.event_id]
+            [:fact_host_application :fha] [:= :fha.measurement_id :fm.id]
+            [:dim_ci :application_ci] [:= :application_ci.id :fha.application_id])
+      (where [:= :application_ci.name ci-name])
+      (sql/format)
+      (->> (j/query ds)
+           (map :event_name))))
+
+(defn instances-for-ci
+  "Find all instances that are applicable for a ci"
+  [ds ci-name]
+  (-> (select [:host_ci.name :hostname])
+      (modifiers :distinct)
+      (from [:fact_measurement :fm])
+      (join [:dim_event :de] [:= :de.id :fm.event_id]
+            [:fact_host_application :fha] [:= :fha.measurement_id :fm.id]
+            [:dim_ci :application_ci] [:= :application_ci.id :fha.application_id]
+            [:dim_ci :host_ci] [:= :host_ci.id :fha.ci_id])
+      (where [:= :application_ci.name ci-name])
+      (sql/format)
+      (->> (j/query ds)
+           (map :hostname))))

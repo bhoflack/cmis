@@ -61,7 +61,7 @@
   (-> session
       (ssh {:in (str "openssl sha1 " NAGIOS_ARCHIVE_DIR "/nagios-*")})
       (:out)
-      (->> (re-seq #"SHA1\((.*)\)= (\w{32})"))
+      (->> (re-seq #"SHA1\((.*)\)= (\w{40})"))
       (->> (map (fn [[_ path sha]] {:path path :sha sha})))
       (->> (filter (fn [{:keys [path]}] (not (.endsWith path ".gz")))))
       (->> (filter #(not (idempotent/contains-entry? idempotent %))))

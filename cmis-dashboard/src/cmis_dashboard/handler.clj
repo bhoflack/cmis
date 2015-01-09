@@ -4,7 +4,7 @@
             [compojure.route :as route]
             [clojure.data.json :as json]
             [cmis-dashboard.service :as cmis]
-            ))
+            [cmis-dashboard.pages :as pages]))
 
 (def ds (atom nil))
 
@@ -22,6 +22,17 @@
                     (if (nil? product)
                       {:status 404 :headers {}}
                       (json/write-str product))))))
+
+  (GET "/reports/linear-regression/graphs/generate"
+       {query-params :query-params}      
+       (let [ci (get query-params "ci")
+             event (get query-params "event")
+             hostname (get query-params "hostname")]
+         (pages/linear-regression-graph @ds ci event hostname)))
+  (GET "/reports/linear-regression"
+       {query-params :query-params}
+       (let [ci (get query-params "ci")]
+         (pages/linear-regression-page @ds ci)))
 
   (route/resources "")
   (route/resources "/")

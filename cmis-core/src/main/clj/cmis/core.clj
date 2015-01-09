@@ -39,6 +39,12 @@
                   (j/with-identity (j/key "cmdb-import"))
                   (j/using-job-data {:productservice ps
                                      :cmdb-product-url cmdb-product-url}))
+        cmdb-startup-job (j/build
+                  (j/of-type CmdbImport)
+                  (j/with-identity (j/key "cmdb-startup-import"))
+                  (j/using-job-data {:productservice ps
+                                     :cmdb-product-url cmdb-product-url}))
+
         
         cmdb-trigger (t/build
                       (t/with-identity (t/key "cmdb-import-trigger"))
@@ -49,10 +55,6 @@
         startup-cmdb (t/build
                       (t/with-identity (t/key "startup-cmdb"))
                       (t/start-now))
-
-        startup-nagios (t/build
-                      (t/with-identity (t/key "startup-nagios"))
-                      (t/start-now))
         
         nagios-job (j/build
                     (j/of-type NagiosImport)
@@ -60,14 +62,25 @@
                     (j/using-job-data {:idempotent idempotent
                                        :event-service event-service}))
 
+        nagios-startup-job (j/build
+                    (j/of-type NagiosImport)
+                    (j/with-identity (j/key "nagios-startup-import"))
+                    (j/using-job-data {:idempotent idempotent
+                                       :event-service event-service}))
+        
+        startup-nagios (t/build
+                        (t/with-identity (t/key "startup-nagios"))
+                        (t/start-now))
+
         nagios-trigger (t/build
                         (t/with-identity (t/key "nagios-import-trigger"))
                         (t/start-now)
                         (t/with-schedule (schedule
-                                          (cron-schedule "0 0 1 * * ?"))))]       
+                                          (cron-schedule "0 25 * * * ?"))))]       
     (qs/initialize)
     (qs/start)
-    (qs/schedule cmdb-job startup-cmdb)
-    (qs/schedule nagios-job startup-nagios)
+
     (qs/schedule cmdb-job cmdb-trigger)
-    (qs/schedule nagios-job nagios-trigger)))
+    (qs/schedule cmdb-startup-job startup-cmdb)
+    (qs/schedule nagios-job nagios-trigger)
+    (qs/schedule nagios-startup-job nagios-trigger)))

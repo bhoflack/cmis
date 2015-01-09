@@ -33,5 +33,5 @@
                   ;; expire connections after 3 hours of inactivity:
                   (.setMaxIdleTime (* 3 60 60)))]
          (reset! cmis-dashboard.handler/ds datasource)
-         (.start (Thread. (fn [] (serve cmis-dashboard.handler/app {:open-browser? false}))))
+         (serve cmis-dashboard.handler/app {:open-browser? false})
          (cmis.core/schedule-jobs ds cmdb-product-url)))))
