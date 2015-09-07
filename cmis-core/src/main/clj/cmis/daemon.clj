@@ -2,8 +2,8 @@
   (:import [cmis.esx EsxHypervisor])
   (:require [cmis
              [esx :as esx]
-             [nagios :as nagios]
-             [star :as star]]
+             [nagios :as nagios]]
+            [star.core :as star]
             [clojure.tools.logging :as log]))
 
 (defn each-vmware-server

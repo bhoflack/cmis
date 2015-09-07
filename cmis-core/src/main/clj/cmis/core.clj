@@ -44,7 +44,6 @@
                   (j/with-identity (j/key "cmdb-startup-import"))
                   (j/using-job-data {:productservice ps
                                      :cmdb-product-url cmdb-product-url}))
-
         
         cmdb-trigger (t/build
                       (t/with-identity (t/key "cmdb-import-trigger"))
@@ -83,4 +82,4 @@
     (qs/schedule cmdb-job cmdb-trigger)
     (qs/schedule cmdb-startup-job startup-cmdb)
     (qs/schedule nagios-job nagios-trigger)
-    (qs/schedule nagios-startup-job nagios-trigger)))
+    (qs/schedule nagios-startup-job startup-nagios)))

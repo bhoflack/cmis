@@ -1,7 +1,7 @@
 (ns cmis.datastore.idempotent-test
   (:use clojure.test
         cmis.datastore.idempotent)
-  (:import [cmis.datastore.idempotent Idempotent])
+  (:import [cmis.datastore.idempotent IdempotentDS])
   (:require [cmis.db :as db]))
 
 (deftest idempotent-test
@@ -9,7 +9,7 @@
               :subname "mem:cmis"
               :user "sa"
               :password ""}
-          idempotent (Idempotent. ds)]
+          idempotent (IdempotentDS. ds)]
       (db/with-database! ds
         (testing "When an entry doesn't exist it returns false"
           (is (= nil

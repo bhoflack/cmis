@@ -1,7 +1,6 @@
 (ns cmis.datastore.ciapplication
-    (:require [cmis
-             [star :as star]
-             [util :as util]]
+  (:require [cmis.util :as util]
+            [star.core :as star]
             [cmis.datastore :refer [timedimension]]
             [clojure.tools.logging :as log])
   (:gen-class))
@@ -24,12 +23,11 @@
           hostid (star/slowly-changing-dimension ds :dim_ci {:name hostname} [:name] [:name])
           id (util/random-uuid)]
       (log/debug "Saving application event")      
-      (star/insert ds
-                   :fact_host_application
-                   {:id id
-                    :measurement_id measurementid
-                    :application_id applicationid
-                    :ci_id hostid
-                    :time_id timeid})
-      id))
-  )    
+      (star/insert-into-facttable ds
+                                  :fact_host_application
+                                  {:id id
+                                   :measurement_id measurementid
+                                   :application_id applicationid
+                                   :ci_id hostid
+                                   :time_id timeid})
+      id)))    

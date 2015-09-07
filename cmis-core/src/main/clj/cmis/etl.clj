@@ -1,9 +1,7 @@
 (ns cmis.etl
-  (:require  [cmis.star :as star]
-             [cmis.util :as util]
-             [cmis.etl.nagios :as nagios]
-             (clj-time.core) (clj-time.coerce)
-             [clojure.java.jdbc :as j]))
+  (:require [cmis.util :as util]
+            [cmis.etl.nagios :as nagios]
+            [clojure.java.jdbc :as j]))
 
 (defn parse-nagios-log
   [ds & files]

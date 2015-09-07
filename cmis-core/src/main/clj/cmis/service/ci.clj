@@ -1,6 +1,6 @@
 (ns cmis.service.ci
   (:require [clojure.java.jdbc :as jdbc]
-            [cmis.star :as star]
+            [star.core :as star]
             [cmis.util :as u]))
 
 (defprotocol ACiService

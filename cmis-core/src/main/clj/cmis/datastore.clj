@@ -1,9 +1,6 @@
 (ns cmis.datastore
-  (:require [cmis
-             [star :as star]
-             [util :as util]]
-            [clojure.tools.logging :as log])
-  (:gen-class))
+  (:require clj-time.core
+            clj-time.coerce))
 
 (defn timedimension
   [ts]

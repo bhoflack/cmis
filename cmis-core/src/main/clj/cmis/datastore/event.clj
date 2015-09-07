@@ -1,8 +1,7 @@
 (ns cmis.datastore.event
-  (:require [cmis
-             [star :as star]
-             [util :as util]]
+  (:require [cmis.util :as util]            
             [cmis.datastore :refer [timedimension]]
+            [star.core :as star]
             [clojure.tools.logging :as log])
   (:gen-class))
 
@@ -54,7 +53,7 @@
               :environment_id environment_id
               :value value}]
     (log/debug "Saving fact " fact)    
-    (star/insert ds :fact_measurement fact)
+    (star/insert-into-facttable ds :fact_measurement fact)
     id))
 
 (defmethod to-star-schema #{:timestamp :ci_id :event :unit :value :environment :labels :name}
@@ -71,13 +70,13 @@
                                                        {:environment environment}
                                                        [:environment] [:environment])
         id (util/random-uuid)]
-    (star/insert ds :fact_measurement {:id id
-                                       :time_id time_id
-                                       :event_id event_id
-                                       :ci_id ci_id
-                                       :environment_id environment_id
-                                       :value value
-                                       })
+    (star/insert-into-facttable ds :fact_measurement {:id id
+                                                      :time_id time_id
+                                                      :event_id event_id
+                                                      :ci_id ci_id
+                                                      :environment_id environment_id
+                                                      :value value
+                                                      })
     id))
 
 (defrecord EventDatastore [ds]

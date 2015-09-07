@@ -1,6 +1,6 @@
 (ns cmis.service.product
   ^{:doc "Services related to products"}
-  (:require [cmis.star :as star]
+  (:require [star.core :as star]
             [cmis.util :refer [string->uuid]]
             [clojure.java.jdbc :as jdbc]
             [honeysql.core :as sql]
