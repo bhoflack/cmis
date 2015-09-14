@@ -75,11 +75,10 @@
                         (t/with-identity (t/key "nagios-import-trigger"))
                         (t/start-now)
                         (t/with-schedule (schedule
-                                          (cron-schedule "0 25 * * * ?"))))]       
-    (qs/initialize)
-    (qs/start)
+                                          (cron-schedule "0 25 * * * ?"))))]
 
-    (qs/schedule cmdb-job cmdb-trigger)
-    (qs/schedule cmdb-startup-job startup-cmdb)
-    (qs/schedule nagios-job nagios-trigger)
-    (qs/schedule nagios-startup-job startup-nagios)))
+    (doto (-> (qs/initialize) qs/start)
+      (qs/schedule cmdb-job cmdb-trigger)
+      (qs/schedule cmdb-startup-job startup-cmdb)
+      (qs/schedule nagios-job nagios-trigger)
+      (qs/schedule nagios-startup-job startup-nagios))))
