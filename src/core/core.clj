@@ -6,7 +6,8 @@
    [core.spouts.measurement :refer [measurement-spout]]
    [core.bolts.star :refer [to-star-schema]])
   (:import
-   [backtype.storm LocalCluster]))
+   [backtype.storm LocalCluster])
+  (:gen-class))
 
 (defspout cmdb-spout ["ci"]
   [conf context collector]

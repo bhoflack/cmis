@@ -8,7 +8,7 @@
   {:timestamp (java.sql.Date. (clj-time.coerce/to-long ts))
    :hour (clj-time.core/hour ts)
    :minute (clj-time.core/minute ts)
-   :second (clj-time.core/sec ts)
+   :second (clj-time.core/second ts)
    :day_of_week (clj-time.core/day-of-week ts)
    :day_of_month (clj-time.core/day ts)
    :month (clj-time.core/month ts)

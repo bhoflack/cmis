@@ -1,4 +1,4 @@
-(defproject core "2.0.0-SNAPSHOT"
+(defproject cmis "2.0.0-SNAPSHOT"
   :description "CMIS core:  Link all events with the CI's."
   :url "http://github.com/bhoflack/cmis"
   :license {:name "Eclipse Public License"
